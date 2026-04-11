@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Bash(mkdir -p /Users/paulsantini/code/blind-service/supabase/migrations)",
+      "Bash(mkdir -p /Users/paulsantini/code/blind-service/src/lib/supabase)",
+      "Bash(mkdir -p /Users/paulsantini/code/blind-service/src/lib/scoring)",
+      "Bash(mkdir -p /Users/paulsantini/code/blind-service/src/lib/realtime)",
+      "Bash(mkdir -p /Users/paulsantini/code/blind-service/src/lib/constants)",
+      "Bash(npx tsc:*)",
+      "Bash(npm run:*)",
+      "Bash(supabase db:*)"
+    ]
+  }
+}

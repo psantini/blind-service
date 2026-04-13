@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/Badge';
 import { WHISKEY_TYPES } from '@/lib/constants/whiskeyTypes';
 import { DEFAULT_AGE_BRACKETS, DEFAULT_PROOF_BRACKETS } from '@/lib/constants/defaultBrackets';
 import { SampleData, AttributeData } from './SampleSetupForm';
-import { uploadBottleImage } from '@/app/blinds/[blindId]/host/setup/actions';
+import { createClient } from '@/lib/supabase/client';
 
 interface SampleFormProps {
   blindId: string;
@@ -173,10 +173,17 @@ export function SampleForm({ blindId, sample, nosingEnabled, onChange, onSave, o
             if (!file) return;
             setIsUploading(true);
             try {
-              const form = new FormData();
-              form.append('file', file);
-              const url = await uploadBottleImage(blindId, form);
-              onChange({ bottleImageUrl: url });
+              const ext = file.name.split('.').pop();
+              const path = `${blindId}/${Date.now()}.${ext}`;
+              const supabase = createClient();
+              const { error } = await supabase.storage
+                .from('bottle-images')
+                .upload(path, file, { upsert: true });
+              if (error) throw error;
+              const { data: { publicUrl } } = supabase.storage
+                .from('bottle-images')
+                .getPublicUrl(path);
+              onChange({ bottleImageUrl: publicUrl });
             } finally {
               setIsUploading(false);
             }

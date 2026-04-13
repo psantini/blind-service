@@ -104,25 +104,3 @@ export async function activateBlind(blindId: string) {
 
   redirect(`/blinds/${blindId}/host`);
 }
-
-export async function uploadBottleImage(blindId: string, file: FormData): Promise<string> {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error('Not authenticated');
-
-  const imageFile = file.get('file') as File;
-  const ext = imageFile.name.split('.').pop();
-  const path = `${blindId}/${Date.now()}.${ext}`;
-
-  const { error } = await supabase.storage
-    .from('bottle-images')
-    .upload(path, imageFile, { upsert: true });
-
-  if (error) throw error;
-
-  const { data: { publicUrl } } = supabase.storage
-    .from('bottle-images')
-    .getPublicUrl(path);
-
-  return publicUrl;
-}

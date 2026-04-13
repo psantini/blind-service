@@ -227,6 +227,7 @@ export function SampleSetupForm({
             {sample.isExpanded && (
               <div className="border-t border-stone-100 px-5 py-4">
                 <SampleForm
+                  blindId={blindId}
                   sample={sample}
                   nosingEnabled={nosingEnabled}
                   onChange={(data) => updateSample(index, data)}

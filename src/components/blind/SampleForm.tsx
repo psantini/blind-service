@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { Input } from '@/components/ui/Input';
 import { Dropdown } from '@/components/ui/Dropdown';
 import { Button } from '@/components/ui/Button';
@@ -7,8 +8,10 @@ import { Badge } from '@/components/ui/Badge';
 import { WHISKEY_TYPES } from '@/lib/constants/whiskeyTypes';
 import { DEFAULT_AGE_BRACKETS, DEFAULT_PROOF_BRACKETS } from '@/lib/constants/defaultBrackets';
 import { SampleData, AttributeData } from './SampleSetupForm';
+import { uploadBottleImage } from '@/app/blinds/[blindId]/host/setup/actions';
 
 interface SampleFormProps {
+  blindId: string;
   sample: SampleData;
   nosingEnabled: boolean;
   onChange: (data: Partial<SampleData>) => void;
@@ -85,7 +88,8 @@ function BracketEditor({
   );
 }
 
-export function SampleForm({ sample, nosingEnabled, onChange, onSave, onDelete, isSaving }: SampleFormProps) {
+export function SampleForm({ blindId, sample, nosingEnabled, onChange, onSave, onDelete, isSaving }: SampleFormProps) {
+  const [isUploading, setIsUploading] = useState(false);
   function updateAttr(index: number, updates: Partial<AttributeData>) {
     const next = sample.attributes.map((a, i) => i === index ? { ...a, ...updates } : a);
 
@@ -163,14 +167,23 @@ export function SampleForm({ sample, nosingEnabled, onChange, onSave, onDelete, 
           type="file"
           accept="image/*"
           className="text-sm text-stone-600"
+          disabled={isUploading}
           onChange={async (e) => {
             const file = e.target.files?.[0];
             if (!file) return;
-            const url = URL.createObjectURL(file);
-            onChange({ bottleImageUrl: url });
+            setIsUploading(true);
+            try {
+              const form = new FormData();
+              form.append('file', file);
+              const url = await uploadBottleImage(blindId, form);
+              onChange({ bottleImageUrl: url });
+            } finally {
+              setIsUploading(false);
+            }
           }}
         />
-        {sample.bottleImageUrl && (
+        {isUploading && <p className="text-xs text-stone-400 mt-1">Uploading...</p>}
+        {!isUploading && sample.bottleImageUrl && (
           <img
             src={sample.bottleImageUrl}
             alt="Bottle"

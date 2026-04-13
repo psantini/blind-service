@@ -9,7 +9,9 @@
       "Bash(mkdir -p /Users/paulsantini/code/blind-service/src/lib/constants)",
       "Bash(npx tsc:*)",
       "Bash(npm run:*)",
-      "Bash(supabase db:*)"
+      "Bash(supabase db:*)",
+      "Bash(supabase storage:*)",
+      "Bash(ls:*)"
     ]
   }
 }

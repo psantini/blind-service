@@ -10,7 +10,9 @@
     "test:watch": "vitest",
     "test:visual": "playwright test",
     "test:visual:update": "playwright test --update-snapshots",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "prepare": "husky"
   },
   "dependencies": {
     "@supabase/ssr": "^0.10.2",
@@ -34,7 +36,11 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@vitejs/plugin-react": "^6.0.1",
+    "eslint": "^9.39.4",
+    "eslint-config-next": "^16.2.4",
+    "husky": "^9.1.7",
     "jsdom": "^25.0.1",
+    "lint-staged": "^16.4.0",
     "tailwindcss": "^4",
     "typescript": "^5",
     "vitest": "^4.1.4"

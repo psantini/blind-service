@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useTransition, useRef } from 'react';
+import { useState, useEffect, useTransition, useRef } from 'react';
 import { saveAnswerDraft, submitSample, initAnswers } from '@/app/blinds/[blindId]/taste/[sampleId]/actions';
 import { Button } from '@/components/ui/Button';
 import { FreeTextQuestion } from './FreeTextQuestion';
@@ -60,14 +60,17 @@ export function QuestionSheet({
   });
   const initialized = useRef(false);
 
-  // Init answer rows on first render
-  if (!initialized.current) {
+  // Init answer rows exactly once, outside render via useEffect
+  useEffect(() => {
+    if (initialized.current) return;
     initialized.current = true;
     const missingIds = questions.map(q => q.id).filter(id => !answerIds[id]);
     if (missingIds.length > 0) {
       initAnswers(missingIds).catch(console.error);
     }
-  }
+  // answerIds intentionally omitted — snapshot at mount only
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const finishedQuestion = questions.find(q => q.attribute.name === 'finished');
   const finishTypeQuestion = questions.find(q => q.attribute.name === 'finish_type');

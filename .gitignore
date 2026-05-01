@@ -12,6 +12,9 @@
 
 # testing
 /coverage
+/playwright-report
+/test-results
+# snapshots are intentionally committed — do not add __snapshots__ here
 
 # next.js
 /.next/

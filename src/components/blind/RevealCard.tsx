@@ -42,20 +42,20 @@ interface RevealCardProps {
 }
 
 function pointDisplay(answer: Answer | undefined): { text: string; color: string } {
-  if (!answer) return { text: '—', color: 'text-stone-400' };
-  if (answer.fuzzy_flagged && answer.host_approved === null) return { text: '? pts', color: 'text-amber-600' };
-  if (answer.points_earned === null) return { text: '—', color: 'text-stone-400' };
-  if (answer.points_earned === 0) return { text: '0 pts', color: 'text-stone-400' };
-  return { text: `${answer.points_earned} pts`, color: 'text-green-700 font-semibold' };
+  if (!answer) return { text: '—', color: 'text-muted' };
+  if (answer.fuzzy_flagged && answer.host_approved === null) return { text: '? pts', color: 'text-amber' };
+  if (answer.points_earned === null) return { text: '—', color: 'text-muted' };
+  if (answer.points_earned === 0) return { text: '0 pts', color: 'text-muted' };
+  return { text: `${answer.points_earned} pts`, color: 'text-green-400 font-semibold' };
 }
 
 function answerColor(answer: Answer | undefined, correctValue: string): string {
-  if (!answer || answer.value === null) return 'text-stone-400';
-  if (answer.fuzzy_flagged && answer.host_approved === null) return 'text-amber-600';
+  if (!answer || answer.value === null) return 'text-muted';
+  if (answer.fuzzy_flagged && answer.host_approved === null) return 'text-amber';
   const normalized = (s: string) => s.trim().toLowerCase();
-  if (normalized(answer.value) === normalized(correctValue)) return 'text-green-700';
-  if ((answer.points_earned ?? 0) > 0) return 'text-amber-600';
-  return 'text-stone-400 line-through';
+  if (normalized(answer.value) === normalized(correctValue)) return 'text-green-400';
+  if ((answer.points_earned ?? 0) > 0) return 'text-amber';
+  return 'text-muted line-through';
 }
 
 export function RevealCard({
@@ -88,17 +88,17 @@ export function RevealCard({
     <div className="space-y-4 mt-4">
       {/* Header */}
       <div>
-        <p className="text-xs text-stone-400 uppercase tracking-wide">Sample {sample.label} — Revealed</p>
-        <h2 className="text-2xl font-bold text-stone-900 mt-1">
+        <p className="text-xs text-muted uppercase tracking-wide">Sample {sample.label} — Revealed</p>
+        <h2 className="text-2xl font-display italic font-bold text-[#0D0D0D] mt-1">
           {attributes.find(a => a.name === 'distillery')?.value ?? 'Unknown'}
         </h2>
       </div>
 
       {/* Hero: image + score */}
-      <div className="bg-white border border-stone-200 rounded-xl overflow-hidden">
+      <div className="bg-cream rounded-xl overflow-hidden" style={{ border: '0.5px solid #E5DDD0' }}>
         <div className="flex gap-0">
           {sample.bottle_image_url && (
-            <div className="w-40 shrink-0 bg-stone-50 flex items-center justify-center p-3 border-r border-stone-100">
+            <div className="w-40 shrink-0 bg-[#EDE7D5] flex items-center justify-center p-3" style={{ borderRight: '0.5px solid #E5DDD0' }}>
               <img
                 src={sample.bottle_image_url}
                 alt="Bottle"
@@ -107,19 +107,19 @@ export function RevealCard({
             </div>
           )}
           <div className="flex-1 p-5">
-            <p className="text-4xl font-bold text-stone-900">{myTotal}</p>
-            <p className="text-sm text-stone-500 mb-2">pts scored this sample</p>
+            <p className="text-4xl font-bold text-[#0D0D0D]">{myTotal}</p>
+            <p className="text-sm text-[#666] mb-2">pts scored this sample</p>
             {pendingCount > 0 && (
               <Badge variant="amber" className="mb-3">
                 +? pts pending host review
               </Badge>
             )}
-            <hr className="border-stone-100 my-3" />
+            <hr className="border-[#E5DDD0] my-3" />
             <div className="grid grid-cols-2 gap-3 text-sm">
               {attributes.map(attr => (
                 <div key={attr.id}>
-                  <p className="text-xs text-stone-400 capitalize">{attr.name === 'finish_type' ? 'Finish type' : attr.name}</p>
-                  <p className="font-medium text-stone-800">{attr.value}</p>
+                  <p className="text-xs text-[#999] capitalize">{attr.name === 'finish_type' ? 'Finish type' : attr.name}</p>
+                  <p className="font-medium text-[#0D0D0D]">{attr.value}</p>
                 </div>
               ))}
             </div>
@@ -128,12 +128,12 @@ export function RevealCard({
       </div>
 
       {/* Your answers table */}
-      <div className="bg-white border border-stone-200 rounded-xl overflow-hidden">
-        <div className="px-5 py-3 border-b border-stone-100">
-          <p className="text-xs font-semibold text-stone-500 uppercase tracking-wider">Your answers</p>
+      <div className="bg-cream rounded-xl overflow-hidden" style={{ border: '0.5px solid #E5DDD0' }}>
+        <div className="px-5 py-3" style={{ borderBottom: '0.5px solid #E5DDD0' }}>
+          <p className="text-xs font-semibold text-[#666] uppercase tracking-wider">Your answers</p>
         </div>
-        <div className="divide-y divide-stone-50">
-          <div className="grid grid-cols-4 px-5 py-2 text-xs text-stone-400 font-medium">
+        <div className="divide-y divide-[#E5DDD0]">
+          <div className="grid grid-cols-4 px-5 py-2 text-xs text-[#999] font-medium">
             <span>Attribute</span>
             <span>Correct</span>
             <span>You said</span>
@@ -145,12 +145,12 @@ export function RevealCard({
             const correctAttr = attributes.find(a => a.id === attr.id);
             const myAnswer = myAnswers.find(a => a.question_id === q.id);
             const { text: pts, color: ptsColor } = pointDisplay(myAnswer);
-            const ansColor = myAnswer && correctAttr ? answerColor(myAnswer, correctAttr.value) : 'text-stone-400';
+            const ansColor = myAnswer && correctAttr ? answerColor(myAnswer, correctAttr.value) : 'text-muted';
 
             return (
               <div key={q.id} className="grid grid-cols-4 px-5 py-2.5 text-sm items-center">
-                <span className="text-stone-600 capitalize">{attr.name === 'finish_type' ? 'Finish type' : attr.name}</span>
-                <span className="text-stone-800 font-medium">{correctAttr?.value ?? '—'}</span>
+                <span className="text-[#666] capitalize">{attr.name === 'finish_type' ? 'Finish type' : attr.name}</span>
+                <span className="text-[#0D0D0D] font-medium">{correctAttr?.value ?? '—'}</span>
                 <span className={ansColor}>{myAnswer?.value || '—'}</span>
                 <span className={`text-right text-xs ${ptsColor}`}>{pts}</span>
               </div>
@@ -161,19 +161,20 @@ export function RevealCard({
 
       {/* Other participants */}
       {otherUsers.length > 0 && (
-        <div className="bg-white border border-stone-200 rounded-xl overflow-hidden">
+        <div className="bg-cream rounded-xl overflow-hidden" style={{ border: '0.5px solid #E5DDD0' }}>
           <button
             onClick={() => setOthersExpanded(e => !e)}
-            className="w-full flex items-center justify-between px-5 py-3 border-b border-stone-100 text-left"
+            className="w-full flex items-center justify-between px-5 py-3 text-left"
+            style={{ borderBottom: '0.5px solid #E5DDD0' }}
           >
             <div>
-              <p className="text-xs font-semibold text-stone-500 uppercase tracking-wider">Other participants</p>
-              <p className="text-xs text-stone-400">{otherUsers.length} revealed so far</p>
+              <p className="text-xs font-semibold text-[#666] uppercase tracking-wider">Other participants</p>
+              <p className="text-xs text-[#999]">{otherUsers.length} revealed so far</p>
             </div>
-            <span className="text-stone-400 text-sm">{othersExpanded ? '▲' : '▼'}</span>
+            <span className="text-[#999] text-sm">{othersExpanded ? '▲' : '▼'}</span>
           </button>
           {othersExpanded && (
-            <div className="divide-y divide-stone-100">
+            <div className="divide-y divide-[#E5DDD0]">
               {otherUsers.map(userId => {
                 const userAnswers = allAnswers.filter(a => a.user_id === userId);
                 const userProfile = userAnswers[0]?.profile;
@@ -183,11 +184,11 @@ export function RevealCard({
                 return (
                   <div key={userId} className="px-5 py-4">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium text-stone-800">
+                      <span className="text-sm font-medium text-[#0D0D0D]">
                         {userProfile?.discord_username ?? 'Unknown'}
                       </span>
-                      <span className="text-sm font-semibold text-stone-800">
-                        {userTotal} pts{userPending > 0 && <span className="text-amber-600 ml-1">+?</span>}
+                      <span className="text-sm font-semibold text-[#0D0D0D]">
+                        {userTotal} pts{userPending > 0 && <span className="text-amber ml-1">+?</span>}
                       </span>
                     </div>
                     <div className="flex flex-wrap gap-1.5">
@@ -197,12 +198,12 @@ export function RevealCard({
                         const correctAttr = attributes.find(a => a.id === attr.id);
                         const theirAnswer = userAnswers.find(a => a.question_id === q.id);
                         const { text: pts } = pointDisplay(theirAnswer);
-                        const color = theirAnswer && correctAttr ? answerColor(theirAnswer, correctAttr.value) : 'text-stone-400';
+                        const color = theirAnswer && correctAttr ? answerColor(theirAnswer, correctAttr.value) : 'text-muted';
 
                         return (
                           <span
                             key={q.id}
-                            className={`text-xs px-2 py-1 bg-stone-50 rounded ${color}`}
+                            className={`text-xs px-2 py-1 bg-[#EDE7D5] rounded ${color}`}
                           >
                             {attr.name === 'finish_type' ? 'Finish' : attr.name}: {theirAnswer?.value ?? '—'} ({pts})
                           </span>
@@ -219,7 +220,7 @@ export function RevealCard({
 
       {/* Next button */}
       <div className="flex items-center justify-between pt-2">
-        <span className="text-xs text-stone-400">
+        <span className="text-xs text-muted">
           {otherUsers.length > 0 ? `${otherUsers.length} other${otherUsers.length !== 1 ? 's' : ''} revealed` : ''}
         </span>
         {nextSample ? (

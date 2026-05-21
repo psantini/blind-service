@@ -57,10 +57,10 @@ export function BlindLobby({ blind, currentUserId, isHost, isMember, firstSample
       <div className="flex items-start justify-between mb-6 flex-wrap gap-4">
         <div>
           <div className="flex items-center gap-2 flex-wrap">
-            <h1 className="text-2xl font-bold text-stone-900">{blind.name}</h1>
+            <h1 className="text-2xl font-display italic font-bold text-parchment">{blind.name}</h1>
             <Badge variant={badge.variant}>{badge.label}</Badge>
           </div>
-          <p className="text-sm text-stone-500 mt-1">
+          <p className="text-sm text-smoke mt-1">
             {samples.length} sample{samples.length !== 1 ? 's' : ''} ·{' '}
             {blind.nosing_enabled ? 'Nose + Taste' : 'Taste only'} ·{' '}
             hosted by {blind.host?.discord_username}
@@ -96,20 +96,20 @@ export function BlindLobby({ blind, currentUserId, isHost, isMember, firstSample
         </div>
       </div>
 
-      <div className="bg-white border border-stone-200 rounded-xl p-5 mb-4">
-        <p className="text-xs font-semibold text-stone-500 uppercase tracking-wider mb-3">
+      <div className="bg-cream rounded-xl p-5 mb-4" style={{ border: '0.5px solid #E5DDD0' }}>
+        <p className="text-xs font-semibold text-[#666] uppercase tracking-wider mb-3">
           Members ({blind.blind_members.length})
         </p>
         <div className="space-y-2">
           {blind.blind_members.map(m => (
             <div key={m.user_id} className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-full bg-stone-200 flex items-center justify-center text-xs font-bold text-stone-600 shrink-0">
+              <div className="w-7 h-7 rounded-full bg-[#E5DDD0] flex items-center justify-center text-xs font-bold text-[#0D0D0D] shrink-0">
                 {m.profile?.discord_username[0]?.toUpperCase()}
               </div>
-              <span className="text-sm text-stone-800">
+              <span className="text-sm text-[#0D0D0D]">
                 {m.profile?.discord_username}
                 {m.user_id === currentUserId && (
-                  <span className="text-stone-400 ml-1">(you)</span>
+                  <span className="text-[#999] ml-1">(you)</span>
                 )}
               </span>
               {m.role === 'host' && (
@@ -121,15 +121,15 @@ export function BlindLobby({ blind, currentUserId, isHost, isMember, firstSample
       </div>
 
       {samples.length > 0 && (
-        <div className="bg-white border border-stone-200 rounded-xl p-5">
-          <p className="text-xs font-semibold text-stone-500 uppercase tracking-wider mb-3">
+        <div className="bg-cream rounded-xl p-5" style={{ border: '0.5px solid #E5DDD0' }}>
+          <p className="text-xs font-semibold text-[#666] uppercase tracking-wider mb-3">
             Samples ({samples.length})
           </p>
           <div className="flex gap-2 flex-wrap">
             {samples.map(s => (
               <span
                 key={s.id}
-                className="w-9 h-9 rounded-full bg-stone-100 flex items-center justify-center text-sm font-semibold text-stone-700"
+                className="w-9 h-9 rounded-full bg-[#EDE7D5] flex items-center justify-center text-sm font-semibold text-[#0D0D0D]"
               >
                 {s.label}
               </span>

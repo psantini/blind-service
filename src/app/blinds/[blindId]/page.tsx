@@ -58,7 +58,7 @@ export default async function BlindLobbyPage({
   const firstSample = (blind.samples as any[]).sort((a, b) => a.display_order - b.display_order)[0];
 
   return (
-    <div className="min-h-screen bg-stone-50">
+    <div className="min-h-screen">
       <Nav profile={profile} backHref="/dashboard" backLabel="Dashboard" />
       <BlindLobby
         blind={blind as any}

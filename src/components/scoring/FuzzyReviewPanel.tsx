@@ -34,9 +34,9 @@ export function FuzzyReviewPanel({ blindId, answers }: FuzzyReviewPanelProps) {
   }
 
   return (
-    <div className="bg-white border border-stone-200 rounded-xl overflow-hidden">
-      <div className="px-5 py-4 border-b border-stone-100 flex items-center gap-2">
-        <p className="text-xs font-semibold text-stone-500 uppercase tracking-wider">
+    <div className="bg-cream rounded-xl overflow-hidden" style={{ border: '0.5px solid #E5DDD0' }}>
+      <div className="px-5 py-4 flex items-center gap-2" style={{ borderBottom: '0.5px solid #E5DDD0' }}>
+        <p className="text-xs font-semibold text-[#666] uppercase tracking-wider">
           Fuzzy review
         </p>
         {answers.length > 0 && (
@@ -45,25 +45,25 @@ export function FuzzyReviewPanel({ blindId, answers }: FuzzyReviewPanelProps) {
       </div>
 
       {answers.length === 0 ? (
-        <p className="px-5 py-4 text-sm text-stone-400">No pending fuzzy matches.</p>
+        <p className="px-5 py-4 text-sm text-[#999]">No pending fuzzy matches.</p>
       ) : (
-        <div className="divide-y divide-stone-100">
+        <div className="divide-y divide-[#E5DDD0]">
           {answers.map(answer => {
             const attr = answer.question?.attribute;
             return (
               <div key={answer.id} className="px-5 py-4">
                 <div className="flex items-start justify-between mb-2">
-                  <p className="text-xs font-medium text-stone-600">
+                  <p className="text-xs font-medium text-[#666]">
                     {answer.profile?.discord_username} · Sample {attr?.sample?.label} · {attr?.name}
                   </p>
                   <Badge variant="default">{answer.question?.round}</Badge>
                 </div>
                 <div className="flex items-center gap-2 text-sm mb-3">
-                  <span className="text-stone-500">They said:</span>
-                  <span className="font-medium text-stone-900">{answer.value || '(blank)'}</span>
-                  <span className="text-stone-300">→</span>
-                  <span className="text-stone-500">Correct:</span>
-                  <span className="font-medium text-stone-900">{attr?.value}</span>
+                  <span className="text-[#666]">They said:</span>
+                  <span className="font-medium text-[#0D0D0D]">{answer.value || '(blank)'}</span>
+                  <span className="text-[#999]">→</span>
+                  <span className="text-[#666]">Correct:</span>
+                  <span className="font-medium text-[#0D0D0D]">{attr?.value}</span>
                 </div>
                 <div className="flex gap-2">
                   <Button

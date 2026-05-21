@@ -207,25 +207,25 @@ export function SampleSetupForm({
     <div>
       <div className="space-y-3 mb-6">
         {samples.map((sample, index) => (
-          <div key={index} className="bg-white border border-stone-200 rounded-xl overflow-hidden">
+          <div key={index} className="bg-cream rounded-xl overflow-hidden" style={{ border: '0.5px solid #E5DDD0' }}>
             <button
               type="button"
               onClick={() => toggleExpand(index)}
-              className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-stone-50 transition-colors"
+              className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-[#EDE7D5] transition-colors"
             >
               <div className="flex items-center gap-3">
-                <span className="font-semibold text-stone-900">Sample {sample.label}</span>
+                <span className="font-semibold text-[#0D0D0D]">Sample {sample.label}</span>
                 {!sample.isExpanded && (
-                  <span className="text-xs text-stone-400">
+                  <span className="text-xs text-[#999]">
                     {sample.attributes.filter(a => a.value).map(a => a.name).join(' · ') || 'tap to edit'}
                   </span>
                 )}
               </div>
-              <span className="text-stone-400 text-sm">{sample.isExpanded ? '▲' : '▼'}</span>
+              <span className="text-[#999] text-sm">{sample.isExpanded ? '▲' : '▼'}</span>
             </button>
 
             {sample.isExpanded && (
-              <div className="border-t border-stone-100 px-5 py-4">
+              <div className="px-5 py-4" style={{ borderTop: '0.5px solid #E5DDD0' }}>
                 <SampleForm
                   blindId={blindId}
                   sample={sample}
@@ -244,7 +244,7 @@ export function SampleSetupForm({
       <button
         type="button"
         onClick={addSample}
-        className="w-full py-3 border-2 border-dashed border-stone-300 rounded-xl text-sm text-stone-500 hover:border-stone-400 hover:text-stone-700 transition-colors mb-8"
+        className="w-full py-3 border-2 border-dashed border-[#333] rounded-xl text-sm text-smoke hover:border-[#444] hover:text-parchment transition-colors mb-8"
       >
         + Add sample
       </button>

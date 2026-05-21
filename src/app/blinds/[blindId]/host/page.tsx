@@ -89,7 +89,7 @@ export default async function HostDashboardPage({
     : { data: [] };
 
   return (
-    <div className="min-h-screen bg-stone-50">
+    <div className="min-h-screen">
       <Nav
         profile={profile}
         backHref={`/blinds/${blindId}`}

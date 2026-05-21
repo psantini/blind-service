@@ -82,10 +82,10 @@ export function HostDashboard({ blind, fuzzyAnswers, currentUserId }: HostDashbo
       <div className="flex items-start justify-between flex-wrap gap-4 mb-6">
         <div>
           <div className="flex items-center gap-2 flex-wrap">
-            <h1 className="text-2xl font-bold text-stone-900">{blind.name}</h1>
+            <h1 className="text-2xl font-display italic font-bold text-parchment">{blind.name}</h1>
             <Badge variant={badge.variant}>{badge.label}</Badge>
           </div>
-          <p className="text-sm text-stone-500 mt-1">
+          <p className="text-sm text-smoke mt-1">
             {samples.length} samples · {blind.nosing_enabled ? 'Nose + Taste' : 'Taste only'} · {participants.length} participant{participants.length !== 1 ? 's' : ''}
           </p>
         </div>
@@ -117,11 +117,11 @@ export function HostDashboard({ blind, fuzzyAnswers, currentUserId }: HostDashbo
           { label: 'Fuzzy pending', value: fuzzyAnswers.length, amber: fuzzyAnswers.length > 0 },
           { label: 'Samples', value: samples.length },
         ].map(card => (
-          <div key={card.label} className="bg-white border border-stone-200 rounded-xl p-4">
-            <p className={`text-2xl font-bold ${card.amber ? 'text-amber-600' : 'text-stone-900'}`}>
+          <div key={card.label} className="bg-cream rounded-xl p-4" style={{ border: '0.5px solid #E5DDD0' }}>
+            <p className={`text-2xl font-bold ${card.amber ? 'text-amber' : 'text-[#0D0D0D]'}`}>
               {card.value}
             </p>
-            <p className="text-xs text-stone-500 mt-0.5">{card.label}</p>
+            <p className="text-xs text-[#666] mt-0.5">{card.label}</p>
           </div>
         ))}
       </div>

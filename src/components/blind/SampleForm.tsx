@@ -46,11 +46,11 @@ function BracketEditor({
   }
 
   return (
-    <div className="mt-2 ml-1 border-l-2 border-stone-100 pl-3 space-y-1.5">
-      <p className="text-xs text-stone-400 mb-1">Bracket tiers (sorted by proximity)</p>
+    <div className="mt-2 ml-1 border-l-2 border-[#333] pl-3 space-y-1.5">
+      <p className="text-xs text-muted mb-1">Bracket tiers (sorted by proximity)</p>
       {brackets.map((tier, idx) => (
         <div key={idx} className="flex items-center gap-2">
-          <span className="text-xs text-stone-400 w-16 shrink-0">within</span>
+          <span className="text-xs text-muted w-16 shrink-0">within</span>
           <Input
             type="number"
             value={tier.max_delta}
@@ -59,7 +59,7 @@ function BracketEditor({
             min="0"
             step="0.5"
           />
-          <span className="text-xs text-stone-400">→</span>
+          <span className="text-xs text-muted">→</span>
           <Input
             type="number"
             value={tier.points}
@@ -67,11 +67,11 @@ function BracketEditor({
             className="w-14 text-xs py-1"
             min="0"
           />
-          <span className="text-xs text-stone-400">pts</span>
+          <span className="text-xs text-muted">pts</span>
           <button
             type="button"
             onClick={() => removeTier(idx)}
-            className="text-stone-300 hover:text-red-400 text-sm ml-auto"
+            className="text-[#666] hover:text-red-400 text-sm ml-auto"
           >
             ×
           </button>
@@ -80,7 +80,7 @@ function BracketEditor({
       <button
         type="button"
         onClick={addTier}
-        className="text-xs text-stone-400 hover:text-stone-700 transition-colors"
+        className="text-xs text-[#999] hover:text-[#0D0D0D] transition-colors"
       >
         + Add tier
       </button>
@@ -162,11 +162,11 @@ export function SampleForm({ blindId, sample, nosingEnabled, onChange, onSave, o
     <div className="space-y-4">
       {/* Bottle image */}
       <div>
-        <label className="text-xs font-medium text-stone-500 block mb-1">Bottle image (optional)</label>
+        <label className="text-xs font-medium text-[#666] block mb-1">Bottle image (optional)</label>
         <input
           type="file"
           accept="image/*"
-          className="text-sm text-stone-600"
+          className="text-sm text-[#666]"
           disabled={isUploading}
           onChange={async (e) => {
             const file = e.target.files?.[0];
@@ -189,12 +189,13 @@ export function SampleForm({ blindId, sample, nosingEnabled, onChange, onSave, o
             }
           }}
         />
-        {isUploading && <p className="text-xs text-stone-400 mt-1">Uploading...</p>}
+        {isUploading && <p className="text-xs text-muted mt-1">Uploading...</p>}
         {!isUploading && sample.bottleImageUrl && (
           <img
             src={sample.bottleImageUrl}
             alt="Bottle"
-            className="mt-2 h-20 w-auto rounded object-contain border border-stone-200"
+            className="mt-2 h-20 w-auto rounded object-contain"
+            style={{ border: '0.5px solid #E5DDD0' }}
           />
         )}
       </div>
@@ -212,7 +213,8 @@ export function SampleForm({ blindId, sample, nosingEnabled, onChange, onSave, o
           return (
             <div
               key={attrIdx}
-              className={`${isFinishType ? 'ml-4 bg-stone-50 border border-stone-200 rounded-lg p-3' : 'border border-stone-100 rounded-lg p-3'}`}
+              className={`${isFinishType ? 'ml-4 bg-[#EDE7D5] rounded-lg p-3' : 'rounded-lg p-3'}`}
+              style={{ border: '0.5px solid #E5DDD0' }}
             >
               <div className="grid grid-cols-[1fr_auto_auto_auto] gap-2 items-start">
                 {/* Name + value input */}
@@ -225,7 +227,7 @@ export function SampleForm({ blindId, sample, nosingEnabled, onChange, onSave, o
                       className="mb-1.5 text-xs"
                     />
                   )}
-                  <label className="text-xs font-medium text-stone-600 block mb-1 capitalize">
+                  <label className="text-xs font-medium text-[#666] block mb-1 capitalize">
                     {isStandard ? (attr.name === 'finish_type' ? 'Finish type' : attr.name) : 'Value'}
                   </label>
 
@@ -238,8 +240,8 @@ export function SampleForm({ blindId, sample, nosingEnabled, onChange, onSave, o
                           onClick={() => updateAttr(attrIdx, { value: v })}
                           className={`flex-1 py-1.5 rounded text-sm font-medium transition-colors border ${
                             attr.value === v
-                              ? 'bg-stone-900 text-white border-stone-900'
-                              : 'bg-white text-stone-600 border-stone-300 hover:border-stone-500'
+                              ? 'bg-amber text-black border-amber'
+                              : 'bg-[#EDE7D5] text-[#666] border-[#E5DDD0] hover:border-[#C9B99A]'
                           }`}
                         >
                           {v === 'yes' ? 'Yes' : 'No'}
@@ -271,8 +273,8 @@ export function SampleForm({ blindId, sample, nosingEnabled, onChange, onSave, o
                         onClick={() => setScoringType(attrIdx, st)}
                         className={`px-2 py-0.5 rounded text-xs font-medium border transition-colors ${
                           attr.scoringType === st
-                            ? 'bg-stone-800 text-white border-stone-800'
-                            : 'bg-white text-stone-400 border-stone-200 hover:border-stone-400'
+                            ? 'bg-amber text-black border-amber'
+                            : 'bg-[#EDE7D5] text-[#999] border-[#E5DDD0] hover:border-[#C9B99A]'
                         }`}
                       >
                         {st === 'exact' ? 'Exact' : `Bracket · ${maxPts} pts`}
@@ -288,7 +290,7 @@ export function SampleForm({ blindId, sample, nosingEnabled, onChange, onSave, o
                     {attr.scoringType === 'exact' && (
                       <div className="flex items-center gap-1">
                         {fixedScoringType && (
-                          <span className="text-xs text-stone-400">exact ·</span>
+                          <span className="text-xs text-muted">exact ·</span>
                         )}
                         <input
                           type="number"
@@ -296,9 +298,9 @@ export function SampleForm({ blindId, sample, nosingEnabled, onChange, onSave, o
                           step="1"
                           value={attr.brackets?.[0]?.points ?? 3}
                           onChange={e => setExactPoints(attrIdx, Number(e.target.value))}
-                          className="w-10 text-xs border border-stone-200 rounded px-1.5 py-0.5 text-stone-700 focus:outline-none focus:ring-1 focus:ring-stone-400"
+                          className="w-10 text-xs border border-[#E5DDD0] bg-[#EDE7D5] rounded px-1.5 py-0.5 text-[#0D0D0D] focus:outline-none focus:ring-1 focus:ring-amber"
                         />
-                        <span className="text-xs text-stone-400">pts</span>
+                        <span className="text-xs text-muted">pts</span>
                       </div>
                     )}
                   </div>
@@ -323,8 +325,8 @@ export function SampleForm({ blindId, sample, nosingEnabled, onChange, onSave, o
                       onClick={() => toggleRound(attrIdx, 'nose')}
                       className={`px-2 py-0.5 rounded text-xs font-medium border transition-colors ${
                         attr.rounds.includes('nose')
-                          ? 'bg-stone-900 text-white border-stone-900'
-                          : 'bg-white text-stone-400 border-stone-200'
+                          ? 'bg-amber text-black border-amber'
+                          : 'bg-[#EDE7D5] text-[#999] border-[#E5DDD0]'
                       }`}
                     >
                       Nose
@@ -335,8 +337,8 @@ export function SampleForm({ blindId, sample, nosingEnabled, onChange, onSave, o
                     onClick={() => toggleRound(attrIdx, 'taste')}
                     className={`px-2 py-0.5 rounded text-xs font-medium border transition-colors ${
                       attr.rounds.includes('taste')
-                        ? 'bg-stone-900 text-white border-stone-900'
-                        : 'bg-white text-stone-400 border-stone-200'
+                        ? 'bg-amber text-black border-amber'
+                        : 'bg-[#EDE7D5] text-[#999] border-[#E5DDD0]'
                     }`}
                   >
                     Taste
@@ -348,7 +350,7 @@ export function SampleForm({ blindId, sample, nosingEnabled, onChange, onSave, o
                   <button
                     type="button"
                     onClick={() => removeAttr(attrIdx)}
-                    className="text-stone-300 hover:text-red-400 transition-colors text-sm px-1 pt-5"
+                    className="text-[#666] hover:text-red-400 transition-colors text-sm px-1 pt-5"
                   >
                     ×
                   </button>
@@ -364,12 +366,12 @@ export function SampleForm({ blindId, sample, nosingEnabled, onChange, onSave, o
       <button
         type="button"
         onClick={addCustomAttr}
-        className="text-xs text-stone-500 hover:text-stone-800 transition-colors"
+        className="text-xs text-[#666] hover:text-[#0D0D0D] transition-colors"
       >
         + Add custom attribute
       </button>
 
-      <div className="flex justify-between pt-2 border-t border-stone-100">
+      <div className="flex justify-between pt-2 border-t border-[#E5DDD0]">
         {onDelete && (
           <Button variant="ghost" size="sm" onClick={onDelete} className="text-red-600 hover:bg-red-50">
             Remove sample

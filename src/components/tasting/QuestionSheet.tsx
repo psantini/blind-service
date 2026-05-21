@@ -113,22 +113,21 @@ export function QuestionSheet({
         return (
           <div
             key={q.id}
-            className={`bg-white border border-stone-200 rounded-xl p-4 ${
-              isFinishType ? 'ml-4 border-stone-100 bg-stone-50' : ''
-            }`}
+            className={`bg-cream rounded-xl p-4 ${isFinishType ? 'ml-4 bg-[#EDE7D5]' : ''}`}
+            style={{ border: '0.5px solid #E5DDD0' }}
           >
             <div className="flex items-center justify-between mb-2">
-              <label className="text-sm font-semibold text-stone-800 capitalize">
+              <label className="text-sm font-semibold text-[#0D0D0D] capitalize">
                 {attr.name === 'finish_type' ? 'Finish type' : attr.name}
               </label>
-              <span className="text-xs text-stone-400">up to {maxPts} pts</span>
+              <span className="text-xs text-[#999]">up to {maxPts} pts</span>
             </div>
             {attr.scoring_type === 'bracket' && (
-              <p className="text-xs text-stone-400 mb-2">Scored by proximity — closer = more points</p>
+              <p className="text-xs text-[#999] mb-2">Scored by proximity — closer = more points</p>
             )}
 
             {isFinishType && finishedValue === 'no' && (
-              <p className="text-xs text-stone-400 italic mb-2">
+              <p className="text-xs text-[#999] italic mb-2">
                 Optional — your finish type guess will still be scored even if you said No above.
               </p>
             )}
@@ -161,8 +160,8 @@ export function QuestionSheet({
         );
       })}
 
-      <div className="flex items-center justify-between pt-2 border-t border-stone-200 mt-6">
-        <p className="text-xs text-stone-400">
+      <div className="flex items-center justify-between pt-2 border-t border-[#222] mt-6">
+        <p className="text-xs text-[#999]">
           {nextSampleLabel
             ? `Submitting reveals the answer and unlocks Sample ${nextSampleLabel}`
             : 'Submitting reveals the answer'}

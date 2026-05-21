@@ -26,22 +26,22 @@ export function FlightProgressBar({ samples, currentSampleId, revealedSampleIds 
               <div
                 className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold border-2 transition-colors ${
                   isDone
-                    ? 'bg-stone-900 border-stone-900 text-white'
+                    ? 'bg-amber border-amber text-black'
                     : isCurrent
-                    ? 'bg-white border-stone-900 text-stone-900'
-                    : 'bg-white border-stone-300 text-stone-400'
+                    ? 'bg-[#0D0D0D] border-amber text-amber'
+                    : 'bg-[#0D0D0D] border-[#333] text-muted'
                 }`}
               >
                 {isDone ? '✓' : sample.label}
               </div>
-              <span className="text-[10px] text-stone-400 mt-0.5">
+              <span className="text-[10px] text-muted mt-0.5">
                 {isDone ? 'Done' : isCurrent ? 'Current' : isNext ? 'Next' : 'Locked'}
               </span>
             </div>
             {idx < samples.length - 1 && (
               <div
                 className={`flex-1 h-0.5 mx-1 transition-colors ${
-                  revealedSampleIds.has(sample.id) ? 'bg-stone-900' : 'bg-stone-200'
+                  revealedSampleIds.has(sample.id) ? 'bg-amber' : 'bg-[#333]'
                 }`}
               />
             )}

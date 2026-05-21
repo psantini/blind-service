@@ -9,26 +9,35 @@ interface NavProps {
 
 export function Nav({ profile, backHref, backLabel }: NavProps) {
   return (
-    <nav className="border-b border-stone-200 bg-white">
-      <div className="max-w-4xl mx-auto px-4 h-14 flex items-center justify-between">
+    <nav style={{ background: '#000', borderBottom: '0.5px solid #1a1a1a' }}>
+      <div className="max-w-4xl mx-auto px-5 h-14 flex items-center justify-between">
         <div className="w-24">
           {backHref ? (
             <Link
               href={backHref}
-              className="text-sm text-stone-500 hover:text-stone-900 flex items-center gap-1"
+              className="flex items-center gap-1 uppercase tracking-[0.12em] text-smoke hover:text-parchment transition-colors"
+              style={{ fontSize: '11px' }}
             >
               ← {backLabel ?? 'Back'}
             </Link>
           ) : null}
         </div>
 
-        <Link href="/dashboard" className="font-semibold text-stone-900 text-base">
-          Whiskey Blind
+        <Link href="/dashboard" className="flex items-center gap-3">
+          <span
+            className="flex items-center justify-center rounded-full bg-amber text-black font-display italic font-semibold"
+            style={{ width: 40, height: 40, fontSize: 14 }}
+          >
+            BBC
+          </span>
+          <span className="font-display italic font-semibold text-parchment" style={{ fontSize: 22 }}>
+            Whiskey Blind
+          </span>
         </Link>
 
         <div className="w-24 flex justify-end">
           {profile && (
-            <span className="text-sm text-stone-500 truncate max-w-[96px]">
+            <span className="uppercase tracking-[0.12em] text-smoke truncate max-w-[96px]" style={{ fontSize: '11px' }}>
               {profile.discord_username}
             </span>
           )}

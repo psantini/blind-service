@@ -15,11 +15,11 @@ export default async function NewBlindPage() {
     .single();
 
   return (
-    <div className="min-h-screen bg-stone-50">
+    <div className="min-h-screen">
       <Nav profile={profile} backHref="/dashboard" backLabel="Dashboard" />
       <div className="max-w-2xl mx-auto px-4 py-8">
-        <h1 className="text-2xl font-bold text-stone-900 mb-1">New blind</h1>
-        <p className="text-stone-500 text-sm mb-8">Configure the blind then add samples in the next step.</p>
+        <h1 className="text-2xl font-display italic font-bold text-parchment mb-1">New blind</h1>
+        <p className="text-smoke text-sm mb-8">Configure the blind then add samples in the next step.</p>
         <NewBlindForm />
       </div>
     </div>

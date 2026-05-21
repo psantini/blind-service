@@ -35,10 +35,10 @@ export default async function StatsPage() {
   }));
 
   return (
-    <div className="min-h-screen bg-stone-50">
+    <div className="min-h-screen">
       <Nav profile={profile} backHref="/dashboard" backLabel="Dashboard" />
       <div className="max-w-3xl mx-auto px-4 py-8">
-        <h1 className="text-2xl font-bold text-stone-900 mb-6">All-time stats</h1>
+        <h1 className="text-2xl font-display italic font-bold text-parchment mb-6">All-time stats</h1>
 
         {myStats && (
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">

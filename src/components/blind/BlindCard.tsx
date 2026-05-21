@@ -32,12 +32,12 @@ function Avatar({ username, url }: { username: string; url: string | null }) {
       <img
         src={url}
         alt={username}
-        className="w-6 h-6 rounded-full object-cover border border-white"
+        className="w-6 h-6 rounded-full object-cover border border-[#E5DDD0]"
       />
     );
   }
   return (
-    <div className="w-6 h-6 rounded-full bg-stone-300 flex items-center justify-center text-[10px] font-bold text-stone-700 border border-white">
+    <div className="w-6 h-6 rounded-full bg-[#E5DDD0] flex items-center justify-center text-[10px] font-bold text-[#0D0D0D] border border-[#E5DDD0]">
       {username[0]?.toUpperCase()}
     </div>
   );
@@ -54,16 +54,16 @@ export function BlindCard({ blind, currentUserId }: BlindCardProps) {
 
   return (
     <Link href={`/blinds/${blind.id}`} className="block">
-      <div className="bg-white border border-stone-200 rounded-xl px-5 py-4 hover:border-stone-300 transition-colors">
+      <div className="bg-cream rounded-xl px-5 py-4 hover:border-[#C9B99A] transition-colors" style={{ border: '0.5px solid #E5DDD0' }}>
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="font-semibold text-stone-900 truncate">{blind.name}</span>
+              <span className="font-semibold text-[#0D0D0D] truncate">{blind.name}</span>
               {isHost && (
                 <Badge variant="default">host</Badge>
               )}
             </div>
-            <p className="text-xs text-stone-500 mt-1">
+            <p className="text-xs text-[#666] mt-1">
               {sampleCount} sample{sampleCount !== 1 ? 's' : ''} · {roundType}
               {blind.host && ` · hosted by ${blind.host.discord_username}`}
             </p>
@@ -83,7 +83,7 @@ export function BlindCard({ blind, currentUserId }: BlindCardProps) {
                 ))}
               </div>
               {overflowCount > 0 && (
-                <span className="text-xs text-stone-500">+{overflowCount}</span>
+                <span className="text-xs text-[#666]">+{overflowCount}</span>
               )}
             </div>
           </div>

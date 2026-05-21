@@ -10,18 +10,19 @@ export function Dropdown({ options, placeholder, className, ...props }: Dropdown
   return (
     <select
       className={cn(
-        'w-full px-3 py-2 border border-stone-300 rounded-lg text-sm text-stone-900 bg-white focus:outline-none focus:ring-2 focus:ring-stone-900 focus:border-transparent',
+        'w-full px-3 py-2 bg-pitch text-parchment text-sm focus:outline-none focus:border-amber transition-colors',
         className
       )}
+      style={{ border: '0.5px solid #222', borderRadius: 6 }}
       {...props}
     >
       {placeholder && (
-        <option value="" disabled>
+        <option value="" disabled style={{ color: '#555' }}>
           {placeholder}
         </option>
       )}
       {options.map((opt) => (
-        <option key={opt.value} value={opt.value}>
+        <option key={opt.value} value={opt.value} style={{ background: '#0D0D0D' }}>
           {opt.label}
         </option>
       ))}

@@ -16,17 +16,19 @@ export function Button({
   return (
     <button
       className={cn(
-        'inline-flex items-center justify-center font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed',
+        'inline-flex items-center justify-center font-ui uppercase tracking-[0.12em] transition-colors disabled:opacity-40 disabled:cursor-not-allowed',
         {
-          'bg-stone-900 hover:bg-stone-700 text-white': variant === 'primary',
-          'bg-white hover:bg-stone-50 text-stone-900 border border-stone-300': variant === 'secondary',
-          'bg-red-600 hover:bg-red-700 text-white': variant === 'danger',
-          'hover:bg-stone-100 text-stone-700': variant === 'ghost',
+          'bg-amber text-black hover:opacity-90': variant === 'primary',
+          'text-parchment hover:text-amber': variant === 'secondary',
+          'text-red-400 hover:text-red-300': variant === 'danger',
+          'text-smoke hover:text-parchment': variant === 'ghost',
         },
+        variant === 'secondary' && 'border-[0.5px] border-smoke',
+        variant === 'danger' && 'border-[0.5px] border-red-900',
         {
-          'text-sm px-3 py-1.5': size === 'sm',
-          'text-sm px-4 py-2': size === 'md',
-          'text-base px-5 py-2.5': size === 'lg',
+          'text-[11px] px-3 py-1.5': size === 'sm',
+          'text-[12px] px-4 py-2': size === 'md',
+          'text-[13px] px-5 py-2.5': size === 'lg',
         },
         className
       )}

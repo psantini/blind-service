@@ -24,12 +24,17 @@ export function Modal({ open, onClose, title, children }: ModalProps) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div
-        className="absolute inset-0 bg-black/50"
+        className="absolute inset-0 bg-black/80"
         onClick={onClose}
       />
-      <div className="relative bg-white rounded-xl shadow-xl max-w-md w-full mx-4 p-6">
+      <div
+        className="relative max-w-md w-full mx-4 p-7"
+        style={{ background: '#F5F0E8', border: '0.5px solid #E5DDD0', borderRadius: 12 }}
+      >
         {title && (
-          <h2 className="text-lg font-semibold text-stone-900 mb-4">{title}</h2>
+          <h2 className="font-display italic font-medium mb-5" style={{ fontSize: 20, color: '#0D0D0D' }}>
+            {title}
+          </h2>
         )}
         {children}
       </div>

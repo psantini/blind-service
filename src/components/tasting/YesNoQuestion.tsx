@@ -13,8 +13,8 @@ export function YesNoQuestion({ value, onChange }: YesNoQuestionProps) {
           onClick={() => onChange(v)}
           className={`flex-1 py-2 rounded-lg text-sm font-semibold transition-colors border-2 ${
             value === v
-              ? 'bg-stone-900 text-white border-stone-900'
-              : 'bg-white text-stone-600 border-stone-200 hover:border-stone-400'
+              ? 'bg-amber text-black border-amber'
+              : 'bg-[#EDE7D5] text-[#666] border-[#E5DDD0] hover:border-[#C9B99A]'
           }`}
         >
           {v === 'yes' ? 'Yes' : 'No'}

@@ -99,11 +99,11 @@ export default async function LeaderboardPage({
   const ranked = Object.values(scoreMap).sort((a, b) => b.total - a.total);
 
   return (
-    <div className="min-h-screen bg-stone-50">
+    <div className="min-h-screen">
       <Nav profile={profile} backHref={`/blinds/${blindId}`} backLabel="Lobby" />
       <div className="max-w-3xl mx-auto px-4 py-8">
-        <h1 className="text-2xl font-bold text-stone-900 mb-1">{(blind as any).name}</h1>
-        <p className="text-stone-500 text-sm mb-6">
+        <h1 className="text-2xl font-display italic font-bold text-parchment mb-1">{(blind as any).name}</h1>
+        <p className="text-smoke text-sm mb-6">
           {samples.length} samples · {(blind as any).nosing_enabled ? 'Nose + Taste' : 'Taste only'}
         </p>
         <Leaderboard

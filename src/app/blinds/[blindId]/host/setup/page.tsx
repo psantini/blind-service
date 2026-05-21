@@ -48,15 +48,15 @@ export default async function HostSetupPage({
     .order('display_order');
 
   return (
-    <div className="min-h-screen bg-stone-50">
+    <div className="min-h-screen">
       <Nav
         profile={profile}
         backHref={`/blinds/${blindId}`}
         backLabel="Lobby"
       />
       <div className="max-w-2xl mx-auto px-4 py-8">
-        <h1 className="text-2xl font-bold text-stone-900 mb-1">{blind.name}</h1>
-        <p className="text-stone-500 text-sm mb-8">Add samples and assign questions to rounds.</p>
+        <h1 className="text-2xl font-display italic font-bold text-parchment mb-1">{blind.name}</h1>
+        <p className="text-smoke text-sm mb-8">Add samples and assign questions to rounds.</p>
         <SampleSetupForm
           blindId={blindId}
           nosingEnabled={blind.nosing_enabled}

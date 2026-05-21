@@ -45,14 +45,14 @@ export default async function DashboardPage() {
   const completed = blinds?.filter(b => b.status === 'complete') ?? [];
 
   return (
-    <div className="min-h-screen bg-stone-50">
+    <div className="min-h-screen">
       <Nav profile={profile} />
       <div className="max-w-3xl mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold text-stone-900">Your blinds</h1>
+          <h1 className="text-2xl font-display italic font-bold text-parchment">Your blinds</h1>
           <Link
             href="/blinds/new"
-            className="bg-stone-900 hover:bg-stone-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+            className="bg-amber hover:bg-amber/80 text-black text-sm font-medium px-4 py-2 rounded-lg transition-colors"
           >
             + New blind
           </Link>
@@ -60,7 +60,7 @@ export default async function DashboardPage() {
 
         {activeOrSetup.length > 0 && (
           <section className="mb-8">
-            <p className="text-xs font-semibold text-stone-500 uppercase tracking-wider mb-3">Active</p>
+            <p className="text-xs font-semibold text-smoke uppercase tracking-wider mb-3">Active</p>
             <div className="flex flex-col gap-3">
               {activeOrSetup.map(blind => (
                 <BlindCard
@@ -75,9 +75,9 @@ export default async function DashboardPage() {
 
         {completed.length > 0 && (
           <>
-            <hr className="border-stone-200 mb-6" />
+            <hr className="border-[#222] mb-6" />
             <section>
-              <p className="text-xs font-semibold text-stone-500 uppercase tracking-wider mb-3">Completed</p>
+              <p className="text-xs font-semibold text-smoke uppercase tracking-wider mb-3">Completed</p>
               <div className="flex flex-col gap-3 opacity-70">
                 {completed.map(blind => (
                   <BlindCard
@@ -92,7 +92,7 @@ export default async function DashboardPage() {
         )}
 
         {blinds?.length === 0 && (
-          <div className="text-center py-16 text-stone-400">
+          <div className="text-center py-16 text-muted">
             <p className="text-lg">No blinds yet.</p>
             <p className="text-sm mt-1">Create one or wait for someone to share a link.</p>
           </div>

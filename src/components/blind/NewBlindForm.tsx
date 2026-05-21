@@ -18,9 +18,9 @@ export function NewBlindForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white border border-stone-200 rounded-xl p-6 space-y-6">
+    <form onSubmit={handleSubmit} className="bg-cream rounded-xl p-6 space-y-6" style={{ border: '0.5px solid #E5DDD0' }}>
       <div>
-        <label className="block text-sm font-medium text-stone-700 mb-1.5">
+        <label className="block text-sm font-medium text-[#0D0D0D] mb-1.5">
           Blind name
         </label>
         <Input
@@ -33,20 +33,20 @@ export function NewBlindForm() {
 
       <div className="flex items-center justify-between py-1">
         <div>
-          <p className="text-sm font-medium text-stone-700">Nosing round</p>
-          <p className="text-xs text-stone-500 mt-0.5">Add a separate round for nosing before tasting</p>
+          <p className="text-sm font-medium text-[#0D0D0D]">Nosing round</p>
+          <p className="text-xs text-[#666] mt-0.5">Add a separate round for nosing before tasting</p>
         </div>
         <button
           type="button"
           onClick={() => setNosingEnabled(v => !v)}
           className={`relative w-11 h-6 rounded-full transition-colors focus:outline-none ${
-            nosingEnabled ? 'bg-stone-900' : 'bg-stone-200'
+            nosingEnabled ? 'bg-amber' : 'bg-[#C8BFB0]'
           }`}
           role="switch"
           aria-checked={nosingEnabled}
         >
           <span
-            className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${
+            className={`absolute top-0.5 left-0.5 w-5 h-5 bg-parchment rounded-full shadow transition-transform ${
               nosingEnabled ? 'translate-x-5' : 'translate-x-0'
             }`}
           />

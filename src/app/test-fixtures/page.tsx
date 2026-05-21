@@ -10,10 +10,10 @@ export default function TestFixturesPage() {
   }
 
   return (
-    <div className="p-8 space-y-12 bg-stone-50 min-h-screen">
+    <div className="p-8 space-y-12 min-h-screen">
 
       <section>
-        <h2 className="text-xs font-semibold uppercase tracking-widest text-stone-400 mb-4">Button</h2>
+        <h2 className="text-xs font-semibold uppercase tracking-widest text-smoke mb-4">Button</h2>
         <div className="flex flex-wrap gap-3 items-center">
           <Button variant="primary">Primary</Button>
           <Button variant="secondary">Secondary</Button>
@@ -29,7 +29,7 @@ export default function TestFixturesPage() {
       </section>
 
       <section>
-        <h2 className="text-xs font-semibold uppercase tracking-widest text-stone-400 mb-4">Badge</h2>
+        <h2 className="text-xs font-semibold uppercase tracking-widest text-smoke mb-4">Badge</h2>
         <div className="flex flex-wrap gap-3 items-center">
           <Badge variant="default">Default</Badge>
           <Badge variant="green">Green</Badge>
@@ -40,7 +40,7 @@ export default function TestFixturesPage() {
       </section>
 
       <section>
-        <h2 className="text-xs font-semibold uppercase tracking-widest text-stone-400 mb-4">Input</h2>
+        <h2 className="text-xs font-semibold uppercase tracking-widest text-smoke mb-4">Input</h2>
         <div className="flex flex-col gap-3 max-w-xs">
           <Input placeholder="Placeholder text" />
           <Input defaultValue="Filled value" />

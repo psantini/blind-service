@@ -108,7 +108,7 @@ export default async function TastingPage({
     const nextSample = sortedSamples[currentIdx + 1] ?? null;
 
     return (
-      <div className="min-h-screen bg-stone-50">
+      <div className="min-h-screen">
         <Nav profile={profile} backHref={`/blinds/${blindId}`} backLabel="Lobby" />
         <div className="max-w-2xl mx-auto px-4 py-6">
           <FlightProgressBar
@@ -162,14 +162,14 @@ export default async function TastingPage({
   const sortedSamples = [...(allSamples ?? [])].sort((a, b) => a.display_order - b.display_order);
 
   return (
-    <div className="min-h-screen bg-stone-50">
+    <div className="min-h-screen">
       <Nav profile={profile} backHref={`/blinds/${blindId}`} backLabel="Lobby" />
       <div className="max-w-xl mx-auto px-4 py-6">
         <div className="mb-1">
-          <p className="text-xs text-stone-400">{blind.name}</p>
-          <h1 className="text-2xl font-bold text-stone-900">Sample {sample.label}</h1>
+          <p className="text-xs text-muted">{blind.name}</p>
+          <h1 className="text-2xl font-display italic font-bold text-parchment">Sample {sample.label}</h1>
         </div>
-        <p className="text-sm text-stone-500 mb-4">
+        <p className="text-sm text-smoke mb-4">
           Answer all questions below, then submit to reveal and move on.
         </p>
 
@@ -181,7 +181,7 @@ export default async function TastingPage({
 
         {blind.nosing_enabled && (
           <div className="mt-4 mb-2">
-            <span className="inline-block px-2.5 py-1 bg-stone-100 text-stone-600 text-xs font-medium rounded-full">
+            <span className="inline-block px-2.5 py-1 bg-[#1a1a1a] text-smoke text-xs font-medium rounded-full">
               Tasting round
             </span>
           </div>

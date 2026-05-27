@@ -47,11 +47,14 @@ jobs:
     name: Visual Regression
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    container:
+      image: mcr.microsoft.com/playwright:v1.52.0-noble
     env:
       # Fixture page tests pure UI components — no real Supabase calls are made.
       # Stubs satisfy the client initialisation check in the app layout.
       NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
       NEXT_PUBLIC_SUPABASE_ANON_KEY: placeholder-anon-key
+      HOME: /root
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -59,20 +62,6 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci
-      - name: Cache Playwright browsers
-        uses: actions/cache@v4
-        id: playwright-cache
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-chromium-${{ hashFiles('package-lock.json') }}
-      - name: Install Playwright browsers
-        if: steps.playwright-cache.outputs.cache-hit != 'true'
-        run: npx playwright install --with-deps chromium
-        timeout-minutes: 10
-      - name: Install Playwright system deps (cached browser)
-        if: steps.playwright-cache.outputs.cache-hit == 'true'
-        run: npx playwright install-deps chromium
-        timeout-minutes: 5
       - name: Run visual regression tests
         run: npm run test:visual || npm run test:visual:update
       - name: Commit new snapshots if generated

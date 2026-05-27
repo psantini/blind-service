@@ -1,7 +1,6 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
-import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import { DEFAULT_AGE_BRACKETS, DEFAULT_PROOF_BRACKETS } from '@/lib/constants/defaultBrackets';
 
@@ -92,7 +91,7 @@ export async function deleteSample(blindId: string, sampleId: string) {
   revalidatePath(`/blinds/${blindId}/host/setup`);
 }
 
-export async function activateBlind(blindId: string) {
+export async function activateBlind(blindId: string): Promise<{ redirectTo: string }> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('Not authenticated');
@@ -102,5 +101,5 @@ export async function activateBlind(blindId: string) {
     .update({ status: 'active' })
     .eq('id', blindId);
 
-  redirect(`/blinds/${blindId}/host`);
+  return { redirectTo: `/blinds/${blindId}/host` };
 }

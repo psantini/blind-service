@@ -1,6 +1,7 @@
 'use client';
 
 import { useTransition } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
@@ -45,11 +46,17 @@ const STATUS_BADGE: Record<BlindStatus, { label: string; variant: 'green' | 'amb
 
 export function BlindLobby({ blind, currentUserId, isHost, isMember, firstSampleId }: BlindLobbyProps) {
   const [isPending, startTransition] = useTransition();
+  const router = useRouter();
   const badge = STATUS_BADGE[blind.status];
   const samples = [...blind.samples].sort((a, b) => a.display_order - b.display_order);
 
   function handleJoin() {
-    startTransition(() => joinBlind(blind.id));
+    startTransition(async () => {
+      const result = await joinBlind(blind.id);
+      if (result?.redirectTo) {
+        router.push(result.redirectTo);
+      }
+    });
   }
 
   return (

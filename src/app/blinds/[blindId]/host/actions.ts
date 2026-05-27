@@ -2,7 +2,6 @@
 
 import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
-import { redirect } from 'next/navigation';
 
 export async function reviewFuzzyAnswer(blindId: string, answerId: string, approved: boolean) {
   const supabase = await createClient();
@@ -33,7 +32,7 @@ export async function reviewFuzzyAnswer(blindId: string, answerId: string, appro
   revalidatePath(`/blinds/${blindId}/host`);
 }
 
-export async function completeBlind(blindId: string) {
+export async function completeBlind(blindId: string): Promise<{ redirectTo: string }> {
   const supabase = await createClient();
 
   await supabase
@@ -41,5 +40,5 @@ export async function completeBlind(blindId: string) {
     .update({ status: 'complete' })
     .eq('id', blindId);
 
-  redirect(`/blinds/${blindId}/leaderboard`);
+  return { redirectTo: `/blinds/${blindId}/leaderboard` };
 }

@@ -1,12 +1,11 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
-import { redirect } from 'next/navigation';
 
-export async function joinBlind(blindId: string) {
+export async function joinBlind(blindId: string): Promise<{ redirectTo: string }> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect('/');
+  if (!user) return { redirectTo: '/' };
 
   await supabase
     .from('blind_members')
@@ -19,7 +18,6 @@ export async function joinBlind(blindId: string) {
       { onConflict: 'blind_id,user_id', ignoreDuplicates: true }
     );
 
-  // Get first sample to navigate to tasting
   const { data: samples } = await supabase
     .from('samples')
     .select('id, display_order')
@@ -28,8 +26,7 @@ export async function joinBlind(blindId: string) {
     .limit(1);
 
   if (samples && samples.length > 0) {
-    redirect(`/blinds/${blindId}/taste/${samples[0].id}`);
-  } else {
-    redirect(`/blinds/${blindId}`);
+    return { redirectTo: `/blinds/${blindId}/taste/${samples[0].id}` };
   }
+  return { redirectTo: `/blinds/${blindId}` };
 }

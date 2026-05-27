@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useTransition } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
@@ -53,6 +54,7 @@ const STATUS_BADGE: Record<BlindStatus, { label: string; variant: 'green' | 'amb
 
 export function HostDashboard({ blind, fuzzyAnswers, currentUserId }: HostDashboardProps) {
   const [isPending, startTransition] = useTransition();
+  const router = useRouter();
   const badge = STATUS_BADGE[blind.status];
   const samples = [...blind.samples].sort((a, b) => a.display_order - b.display_order);
   const participants = blind.blind_members.filter(m => m.role === 'participant');
@@ -73,7 +75,12 @@ export function HostDashboard({ blind, fuzzyAnswers, currentUserId }: HostDashbo
   }
 
   function handleComplete() {
-    startTransition(() => completeBlind(blind.id));
+    startTransition(async () => {
+      const result = await completeBlind(blind.id);
+      if (result?.redirectTo) {
+        router.push(result.redirectTo);
+      }
+    });
   }
 
   return (

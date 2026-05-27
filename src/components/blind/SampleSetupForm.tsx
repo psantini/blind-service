@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useTransition } from 'react';
+import { useRouter } from 'next/navigation';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
@@ -105,6 +106,7 @@ export function SampleSetupForm({
   initialSamples,
 }: SampleSetupFormProps) {
   const [isPending, startTransition] = useTransition();
+  const router = useRouter();
 
   const [samples, setSamples] = useState<SampleData[]>(() => {
     if (initialSamples.length > 0) {
@@ -200,7 +202,12 @@ export function SampleSetupForm({
   }
 
   function handleActivate() {
-    startTransition(() => activateBlind(blindId));
+    startTransition(async () => {
+      const result = await activateBlind(blindId);
+      if (result?.redirectTo) {
+        router.push(result.redirectTo);
+      }
+    });
   }
 
   return (

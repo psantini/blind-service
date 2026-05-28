@@ -10,12 +10,12 @@ export async function joinBlind(blindId: string): Promise<{ redirectTo?: string;
 
   const { error } = await supabase
     .from('blind_members')
-    .upsert(
-      { blind_id: blindId, user_id: user.id, role: 'participant' },
-      { onConflict: 'blind_id,user_id', ignoreDuplicates: true }
-    );
+    .insert({ blind_id: blindId, user_id: user.id, role: 'participant' });
 
-  if (error) return { error: `${error.code}: ${error.message}` };
+  // 23505 = unique_violation: user already joined, safe to ignore
+  if (error && error.code !== '23505') {
+    return { error: `${error.code}: ${error.message}` };
+  }
 
   // samples are now readable by all authenticated users, so this query
   // works regardless of whether the upsert row has propagated yet

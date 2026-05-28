@@ -102,10 +102,10 @@ export function BlindLobby({ blind, currentUserId, isHost, isMember, firstSample
           )}
           {!isHost && isMember && blind.status === 'active' && firstSampleId && (
             <Link href={`/blinds/${blind.id}/taste/${firstSampleId}`}>
-              <Button>Start tasting →</Button>
+              <Button>Continue tasting →</Button>
             </Link>
           )}
-          {blind.status === 'complete' && (
+          {!isMember && blind.status === 'complete' && (
             <Link href={`/blinds/${blind.id}/leaderboard`}>
               <Button variant="secondary" size="sm">View results</Button>
             </Link>

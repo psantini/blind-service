@@ -55,6 +55,10 @@ export default async function BlindLobbyPage({
 
   const currentMember = blind.blind_members.find((m: any) => m.user_id === user.id);
   const isHost = currentMember?.role === 'host';
+
+  if (currentMember && blind.status === 'complete') {
+    redirect(`/blinds/${blindId}/leaderboard`);
+  }
   const firstSample = (blind.samples as any[]).sort((a, b) => a.display_order - b.display_order)[0];
 
   return (

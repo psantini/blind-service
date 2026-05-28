@@ -9,7 +9,6 @@ import { WHISKEY_TYPES } from '@/lib/constants/whiskeyTypes';
 import { DEFAULT_AGE_BRACKETS, DEFAULT_PROOF_BRACKETS } from '@/lib/constants/defaultBrackets';
 import { SampleData, AttributeData } from './SampleSetupForm';
 import { createClient } from '@/lib/supabase/client';
-import heic2any from 'heic2any';
 
 interface SampleFormProps {
   blindId: string;
@@ -91,6 +90,7 @@ function BracketEditor({
 
 export function SampleForm({ blindId, sample, nosingEnabled, onChange, onSave, onDelete, isSaving }: SampleFormProps) {
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
   function updateAttr(index: number, updates: Partial<AttributeData>) {
     const next = sample.attributes.map((a, i) => i === index ? { ...a, ...updates } : a);
 
@@ -173,10 +173,30 @@ export function SampleForm({ blindId, sample, nosingEnabled, onChange, onSave, o
             let file = e.target.files?.[0];
             if (!file) return;
             setIsUploading(true);
+            setUploadError(null);
             try {
-              if (file.type === 'image/heic' || file.type === 'image/heif' || file.name.toLowerCase().endsWith('.heic') || file.name.toLowerCase().endsWith('.heif')) {
-                const converted = await heic2any({ blob: file, toType: 'image/jpeg', quality: 0.85 });
-                file = new File([converted as Blob], file.name.replace(/\.hei[cf]$/i, '.jpg'), { type: 'image/jpeg' });
+              const isHeic = file.type === 'image/heic' || file.type === 'image/heif' ||
+                /\.hei[cf]$/i.test(file.name);
+              if (isHeic) {
+                const url = URL.createObjectURL(file);
+                try {
+                  const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+                    const el = new Image();
+                    el.onload = () => resolve(el);
+                    el.onerror = () => reject(new Error('Browser cannot decode this HEIC file. Please convert to JPG first.'));
+                    el.src = url;
+                  });
+                  const canvas = document.createElement('canvas');
+                  canvas.width = img.naturalWidth;
+                  canvas.height = img.naturalHeight;
+                  canvas.getContext('2d')!.drawImage(img, 0, 0);
+                  const blob = await new Promise<Blob>((resolve, reject) =>
+                    canvas.toBlob(b => b ? resolve(b) : reject(new Error('Conversion failed')), 'image/jpeg', 0.85)
+                  );
+                  file = new File([blob], file.name.replace(/\.hei[cf]$/i, '.jpg'), { type: 'image/jpeg' });
+                } finally {
+                  URL.revokeObjectURL(url);
+                }
               }
               const ext = file.name.split('.').pop();
               const path = `${blindId}/${Date.now()}.${ext}`;
@@ -189,12 +209,15 @@ export function SampleForm({ blindId, sample, nosingEnabled, onChange, onSave, o
                 .from('bottle-images')
                 .getPublicUrl(path);
               onChange({ bottleImageUrl: publicUrl });
+            } catch (err: any) {
+              setUploadError(err?.message ?? 'Upload failed');
             } finally {
               setIsUploading(false);
             }
           }}
         />
         {isUploading && <p className="text-xs text-muted mt-1">Uploading...</p>}
+        {uploadError && <p className="text-xs text-red-400 mt-1">{uploadError}</p>}
         {!isUploading && sample.bottleImageUrl && (
           <img
             src={sample.bottleImageUrl}

@@ -5,14 +5,14 @@ import { DiscordLoginButton } from '@/components/auth/DiscordLoginButton';
 export default async function LandingPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; next?: string }>;
 }) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
   if (user) redirect('/dashboard');
 
-  const { error } = await searchParams;
+  const { error, next } = await searchParams;
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-4">
@@ -26,7 +26,7 @@ export default async function LandingPage({
           </p>
         )}
 
-        <DiscordLoginButton />
+        <DiscordLoginButton next={next} />
       </div>
     </div>
   );

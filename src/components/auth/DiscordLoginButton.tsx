@@ -2,13 +2,15 @@
 
 import { createClient } from '@/lib/supabase/client';
 
-export function DiscordLoginButton() {
+export function DiscordLoginButton({ next }: { next?: string }) {
   async function handleLogin() {
     const supabase = createClient();
+    const callbackUrl = new URL(`${window.location.origin}/auth/callback`);
+    if (next) callbackUrl.searchParams.set('next', next);
     await supabase.auth.signInWithOAuth({
       provider: 'discord',
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
+        redirectTo: callbackUrl.toString(),
         scopes: 'identify email',
       },
     });

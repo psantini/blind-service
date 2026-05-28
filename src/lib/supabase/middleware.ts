@@ -34,7 +34,9 @@ export async function updateSession(request: NextRequest) {
 
   if (isProtectedRoute && !user) {
     const url = request.nextUrl.clone();
+    const next = request.nextUrl.pathname + request.nextUrl.search;
     url.pathname = '/';
+    url.search = `?next=${encodeURIComponent(next)}`;
     return NextResponse.redirect(url);
   }
 

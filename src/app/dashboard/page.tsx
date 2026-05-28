@@ -15,31 +15,41 @@ export default async function DashboardPage() {
     .eq('id', user.id)
     .single();
 
-  const { data: blinds } = await supabase
-    .from('blinds')
-    .select(`
-      id,
-      name,
-      status,
-      nosing_enabled,
-      created_at,
-      host:profiles!host_id (
-        id,
-        discord_username,
-        discord_avatar_url
-      ),
-      blind_members (
-        user_id,
-        role,
-        profile:profiles!user_id (
+  const { data: memberships } = await supabase
+    .from('blind_members')
+    .select('blind_id')
+    .eq('user_id', user.id);
+
+  const blindIds = memberships?.map(m => m.blind_id) ?? [];
+
+  const { data: blinds } = blindIds.length > 0
+    ? await supabase
+        .from('blinds')
+        .select(`
           id,
-          discord_username,
-          discord_avatar_url
-        )
-      ),
-      samples ( id )
-    `)
-    .order('created_at', { ascending: false });
+          name,
+          status,
+          nosing_enabled,
+          created_at,
+          host:profiles!host_id (
+            id,
+            discord_username,
+            discord_avatar_url
+          ),
+          blind_members (
+            user_id,
+            role,
+            profile:profiles!user_id (
+              id,
+              discord_username,
+              discord_avatar_url
+            )
+          ),
+          samples ( id )
+        `)
+        .in('id', blindIds)
+        .order('created_at', { ascending: false })
+    : { data: [] };
 
   const activeOrSetup = blinds?.filter(b => b.status !== 'complete') ?? [];
   const completed = blinds?.filter(b => b.status === 'complete') ?? [];

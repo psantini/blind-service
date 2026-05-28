@@ -163,41 +163,18 @@ export function SampleForm({ blindId, sample, nosingEnabled, onChange, onSave, o
     <div className="space-y-4">
       {/* Bottle image */}
       <div>
-        <label className="text-xs font-medium text-[#666] block mb-1">Bottle image (optional)</label>
+        <label className="text-xs font-medium text-[#666] block mb-1">Bottle image — JPG only (optional)</label>
         <input
           type="file"
-          accept="image/*"
+          accept="image/jpeg"
           className="text-sm text-[#666]"
           disabled={isUploading}
           onChange={async (e) => {
-            let file = e.target.files?.[0];
+            const file = e.target.files?.[0];
             if (!file) return;
             setIsUploading(true);
             setUploadError(null);
             try {
-              const isHeic = file.type === 'image/heic' || file.type === 'image/heif' ||
-                /\.hei[cf]$/i.test(file.name);
-              if (isHeic) {
-                const url = URL.createObjectURL(file);
-                try {
-                  const img = await new Promise<HTMLImageElement>((resolve, reject) => {
-                    const el = new Image();
-                    el.onload = () => resolve(el);
-                    el.onerror = () => reject(new Error('Browser cannot decode this HEIC file. Please convert to JPG first.'));
-                    el.src = url;
-                  });
-                  const canvas = document.createElement('canvas');
-                  canvas.width = img.naturalWidth;
-                  canvas.height = img.naturalHeight;
-                  canvas.getContext('2d')!.drawImage(img, 0, 0);
-                  const blob = await new Promise<Blob>((resolve, reject) =>
-                    canvas.toBlob(b => b ? resolve(b) : reject(new Error('Conversion failed')), 'image/jpeg', 0.85)
-                  );
-                  file = new File([blob], file.name.replace(/\.hei[cf]$/i, '.jpg'), { type: 'image/jpeg' });
-                } finally {
-                  URL.revokeObjectURL(url);
-                }
-              }
               const ext = file.name.split('.').pop();
               const path = `${blindId}/${Date.now()}.${ext}`;
               const supabase = createClient();

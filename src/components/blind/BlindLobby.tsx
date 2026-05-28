@@ -53,7 +53,10 @@ export function BlindLobby({ blind, currentUserId, isHost, isMember, firstSample
   function handleJoin() {
     startTransition(async () => {
       const result = await joinBlind(blind.id);
-      if (result?.redirectTo) {
+      if (!result?.redirectTo) return;
+      if (result.redirectTo === window.location.pathname) {
+        router.refresh();
+      } else {
         router.push(result.redirectTo);
       }
     });

@@ -9,6 +9,7 @@ import { WHISKEY_TYPES } from '@/lib/constants/whiskeyTypes';
 import { DEFAULT_AGE_BRACKETS, DEFAULT_PROOF_BRACKETS } from '@/lib/constants/defaultBrackets';
 import { SampleData, AttributeData } from './SampleSetupForm';
 import { createClient } from '@/lib/supabase/client';
+import heic2any from 'heic2any';
 
 interface SampleFormProps {
   blindId: string;
@@ -169,10 +170,14 @@ export function SampleForm({ blindId, sample, nosingEnabled, onChange, onSave, o
           className="text-sm text-[#666]"
           disabled={isUploading}
           onChange={async (e) => {
-            const file = e.target.files?.[0];
+            let file = e.target.files?.[0];
             if (!file) return;
             setIsUploading(true);
             try {
+              if (file.type === 'image/heic' || file.type === 'image/heif' || file.name.toLowerCase().endsWith('.heic') || file.name.toLowerCase().endsWith('.heif')) {
+                const converted = await heic2any({ blob: file, toType: 'image/jpeg', quality: 0.85 });
+                file = new File([converted as Blob], file.name.replace(/\.hei[cf]$/i, '.jpg'), { type: 'image/jpeg' });
+              }
               const ext = file.name.split('.').pop();
               const path = `${blindId}/${Date.now()}.${ext}`;
               const supabase = createClient();

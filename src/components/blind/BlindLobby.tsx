@@ -1,6 +1,6 @@
 'use client';
 
-import { useTransition } from 'react';
+import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/Badge';
@@ -50,9 +50,13 @@ export function BlindLobby({ blind, currentUserId, isHost, isMember, firstSample
   const badge = STATUS_BADGE[blind.status];
   const samples = [...blind.samples].sort((a, b) => a.display_order - b.display_order);
 
+  const [joinError, setJoinError] = useState<string | null>(null);
+
   function handleJoin() {
+    setJoinError(null);
     startTransition(async () => {
       const result = await joinBlind(blind.id);
+      if (result?.error) { setJoinError(result.error); return; }
       if (!result?.redirectTo) return;
       if (result.redirectTo === window.location.pathname) {
         router.refresh();
@@ -89,9 +93,12 @@ export function BlindLobby({ blind, currentUserId, isHost, isMember, firstSample
             </>
           )}
           {!isHost && !isMember && blind.status === 'active' && (
-            <Button onClick={handleJoin} disabled={isPending}>
-              {isPending ? 'Joining...' : 'Join blind'}
-            </Button>
+            <div className="flex flex-col items-end gap-1">
+              <Button onClick={handleJoin} disabled={isPending}>
+                {isPending ? 'Joining...' : 'Join blind'}
+              </Button>
+              {joinError && <p className="text-xs text-red-400">{joinError}</p>}
+            </div>
           )}
           {!isHost && isMember && blind.status === 'active' && firstSampleId && (
             <Link href={`/blinds/${blind.id}/taste/${firstSampleId}`}>

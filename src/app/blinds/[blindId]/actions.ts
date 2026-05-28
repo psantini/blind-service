@@ -3,7 +3,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 
-export async function joinBlind(blindId: string): Promise<{ redirectTo: string }> {
+export async function joinBlind(blindId: string): Promise<{ redirectTo?: string; error?: string }> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { redirectTo: '/' };
@@ -15,7 +15,7 @@ export async function joinBlind(blindId: string): Promise<{ redirectTo: string }
       { onConflict: 'blind_id,user_id', ignoreDuplicates: true }
     );
 
-  if (error) throw new Error(`Failed to join blind: ${error.message}`);
+  if (error) return { error: `${error.code}: ${error.message}` };
 
   // samples are now readable by all authenticated users, so this query
   // works regardless of whether the upsert row has propagated yet

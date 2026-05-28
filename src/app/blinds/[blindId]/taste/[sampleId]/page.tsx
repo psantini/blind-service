@@ -130,23 +130,26 @@ export default async function TastingPage({
     );
   }
 
-  // Pre-reveal: show question sheet
-  const { data: questions } = await supabase
-    .from('questions')
-    .select(`
-      id,
-      round,
-      attribute:attributes!attribute_id (
-        id,
-        name,
-        input_type,
-        scoring_type,
-        brackets
-      )
-    `)
-    .filter('attribute.sample_id', 'eq', sampleId);
+  // Pre-reveal: fetch attributes for this sample, then their questions
+  const { data: sampleAttributes } = await supabase
+    .from('attributes')
+    .select('id, name, input_type, scoring_type, brackets')
+    .eq('sample_id', sampleId);
 
-  const validQuestions = (questions ?? []).filter((q: any) => q.attribute);
+  const attrIds = sampleAttributes?.map(a => a.id) ?? [];
+
+  const { data: rawQuestions } = attrIds.length > 0
+    ? await supabase
+        .from('questions')
+        .select('id, round, attribute_id')
+        .in('attribute_id', attrIds)
+    : { data: [] };
+
+  const validQuestions = (rawQuestions ?? []).map((q: any) => ({
+    id: q.id,
+    round: q.round,
+    attribute: sampleAttributes?.find(a => a.id === q.attribute_id) ?? null,
+  })).filter((q: any) => q.attribute);
 
   // Init answer rows if needed
   const questionIds = validQuestions.map((q: any) => q.id);

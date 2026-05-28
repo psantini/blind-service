@@ -53,7 +53,7 @@ export default async function HostDashboardPage({
   const { data: questionIds } = sampleIds.length > 0
     ? await supabase
         .from('questions')
-        .select('id')
+        .select('id, round')
         .in('attribute_id',
           (await supabase
             .from('attributes')
@@ -64,6 +64,42 @@ export default async function HostDashboardPage({
     : { data: [] };
 
   const qIds = questionIds?.map((q: any) => q.id) ?? [];
+
+  // Fetch all submitted answers for live standings
+  const { data: allAnswers } = qIds.length > 0
+    ? await supabase
+        .from('answers')
+        .select(`
+          user_id, question_id, points_earned, fuzzy_flagged, host_approved, value,
+          profile:profiles!user_id ( id, discord_username, discord_avatar_url ),
+          question:questions!question_id (
+            attribute:attributes!attribute_id ( name, value, sample_id )
+          )
+        `)
+        .in('question_id', qIds)
+        .not('submitted_at', 'is', null)
+    : { data: [] };
+
+  const questionRoundMap = Object.fromEntries(
+    (questionIds ?? []).map((q: any) => [q.id, q.round])
+  );
+
+  const scoreMap: Record<string, { profile: any; total: number; nose: number; taste: number; pending: number }> = {};
+  for (const answer of (allAnswers ?? []) as any[]) {
+    if (!scoreMap[answer.user_id]) {
+      scoreMap[answer.user_id] = { profile: answer.profile, total: 0, nose: 0, taste: 0, pending: 0 };
+    }
+    const pts = answer.points_earned ?? 0;
+    const round = questionRoundMap[answer.question_id];
+    if (answer.fuzzy_flagged && answer.host_approved === null) {
+      scoreMap[answer.user_id].pending++;
+    } else {
+      scoreMap[answer.user_id].total += pts;
+      if (round === 'nose') scoreMap[answer.user_id].nose += pts;
+      if (round === 'taste') scoreMap[answer.user_id].taste += pts;
+    }
+  }
+  const ranked = Object.values(scoreMap).sort((a, b) => b.total - a.total);
 
   const { data: fuzzyAnswers } = qIds.length > 0
     ? await supabase
@@ -98,6 +134,8 @@ export default async function HostDashboardPage({
       <HostDashboard
         blind={blind as any}
         fuzzyAnswers={fuzzyAnswers as any ?? []}
+        allAnswers={allAnswers as any ?? []}
+        ranked={ranked}
         currentUserId={user.id}
       />
     </div>

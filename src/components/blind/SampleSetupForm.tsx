@@ -117,7 +117,7 @@ export function SampleSetupForm({
           inputType: a.input_type as any,
           scoringType: a.scoring_type as any,
           brackets: a.brackets,
-          rounds: a.questions.map(q => q.round as any),
+          rounds: a.questions.length > 0 ? a.questions.map(q => q.round as any) : ['taste'],
         }));
 
         // Ensure finish_type is present if finished=yes

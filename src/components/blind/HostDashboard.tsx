@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/Button';
 import { reviewFuzzyAnswer, completeBlind } from '@/app/blinds/[blindId]/host/actions';
 import { FuzzyReviewPanel } from '@/components/scoring/FuzzyReviewPanel';
 import { SubmissionTracker } from './SubmissionTracker';
+import { Leaderboard } from '@/components/leaderboard/Leaderboard';
 import { BlindStatus } from '@/types';
 
 interface HostDashboardProps {
@@ -28,6 +29,24 @@ interface HostDashboardProps {
       profile: { id: string; discord_username: string; discord_avatar_url: string | null } | null;
     }>;
   };
+  ranked: Array<{
+    profile: { id: string; discord_username: string; discord_avatar_url: string | null };
+    total: number;
+    nose: number;
+    taste: number;
+    pending: number;
+  }>;
+  allAnswers: Array<{
+    user_id: string;
+    question_id: string;
+    value: string | null;
+    points_earned: number | null;
+    fuzzy_flagged: boolean;
+    host_approved: boolean | null;
+    question: {
+      attribute: { name: string; value: string; sample_id: string } | null;
+    } | null;
+  }>;
   fuzzyAnswers: Array<{
     id: string;
     value: string;
@@ -52,7 +71,7 @@ const STATUS_BADGE: Record<BlindStatus, { label: string; variant: 'green' | 'amb
   complete: { label: 'Complete',  variant: 'grey'  },
 };
 
-export function HostDashboard({ blind, fuzzyAnswers, currentUserId }: HostDashboardProps) {
+export function HostDashboard({ blind, fuzzyAnswers, allAnswers, ranked, currentUserId }: HostDashboardProps) {
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
   const badge = STATUS_BADGE[blind.status];
@@ -134,9 +153,9 @@ export function HostDashboard({ blind, fuzzyAnswers, currentUserId }: HostDashbo
       </div>
 
       {/* Two-column content */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         {/* Submission tracker */}
-        <SubmissionTracker samples={samples} participants={participants} />
+        <SubmissionTracker samples={samples} participants={participants} allAnswers={allAnswers} />
 
         {/* Right column */}
         <div className="space-y-4">
@@ -146,6 +165,18 @@ export function HostDashboard({ blind, fuzzyAnswers, currentUserId }: HostDashbo
             answers={fuzzyAnswers}
           />
         </div>
+      </div>
+
+      {/* Live standings */}
+      <div>
+        <p className="text-xs font-semibold text-[#666] uppercase tracking-wider mb-3">
+          Live standings
+        </p>
+        <Leaderboard
+          entries={ranked}
+          currentUserId={currentUserId}
+          nosingEnabled={blind.nosing_enabled}
+        />
       </div>
     </div>
   );

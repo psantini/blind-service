@@ -78,10 +78,7 @@ export function QuestionSheet({
 
   function handleChange(questionId: string, value: string) {
     setValues(prev => ({ ...prev, [questionId]: value }));
-    const answerId = answerIds[questionId];
-    if (answerId) {
-      saveAnswerDraft(answerId, value).catch(console.error);
-    }
+    saveAnswerDraft(questionId, value).catch(console.error);
   }
 
   function handleSubmit() {

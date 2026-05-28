@@ -21,15 +21,19 @@ export async function initAnswers(questionIds: string[]) {
     );
 }
 
-export async function saveAnswerDraft(answerId: string, value: string) {
+export async function saveAnswerDraft(questionId: string, value: string) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('Not authenticated');
 
+  // Upsert by (question_id, user_id) so this works even before initAnswers
+  // has resolved and returned IDs to the client.
   await supabase
     .from('answers')
-    .update({ value })
-    .eq('id', answerId)
+    .upsert(
+      { question_id: questionId, user_id: user.id, value, submitted_at: null },
+      { onConflict: 'question_id,user_id', ignoreDuplicates: false }
+    )
     .eq('user_id', user.id)
     .is('submitted_at', null);
 }

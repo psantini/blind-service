@@ -140,7 +140,12 @@ export function SampleForm({ blindId, sample, nosingEnabled, onChange, onSave, o
   }
 
   function removeAttr(index: number) {
-    onChange({ attributes: sample.attributes.filter((_, i) => i !== index) });
+    const removing = sample.attributes[index];
+    let next = sample.attributes.filter((_, i) => i !== index);
+    if (removing.name === 'finished') {
+      next = next.filter(a => a.name !== 'finish_type');
+    }
+    onChange({ attributes: next });
   }
 
   function addCustomAttr() {
@@ -351,17 +356,13 @@ export function SampleForm({ blindId, sample, nosingEnabled, onChange, onSave, o
                 </div>
 
                 {/* Remove */}
-                {!isStandard ? (
-                  <button
-                    type="button"
-                    onClick={() => removeAttr(attrIdx)}
-                    className="text-[#666] hover:text-red-400 transition-colors text-sm px-1 pt-5"
-                  >
-                    ×
-                  </button>
-                ) : (
-                  <div className="w-5" />
-                )}
+                <button
+                  type="button"
+                  onClick={() => removeAttr(attrIdx)}
+                  className="text-[#666] hover:text-red-400 transition-colors text-sm px-1 pt-5"
+                >
+                  ×
+                </button>
               </div>
             </div>
           );

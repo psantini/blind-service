@@ -3,6 +3,14 @@ import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { Nav } from '@/components/ui/Nav';
 import { BlindCard } from '@/components/blind/BlindCard';
+import { Badge } from '@/components/ui/Badge';
+import { BlindStatus } from '@/types';
+
+const STATUS_BADGE: Record<BlindStatus, { label: string; variant: 'green' | 'amber' | 'grey' }> = {
+  active:   { label: 'Active',   variant: 'green' },
+  setup:    { label: 'Setup',    variant: 'amber' },
+  complete: { label: 'Complete', variant: 'grey'  },
+};
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -15,51 +23,53 @@ export default async function DashboardPage() {
     .eq('id', user.id)
     .single();
 
+  // Fetch user's memberships with role
   const { data: memberships } = await supabase
     .from('blind_members')
-    .select('blind_id')
+    .select('blind_id, role')
     .eq('user_id', user.id);
 
-  const blindIds = memberships?.map(m => m.blind_id) ?? [];
+  const myBlindIds = memberships?.map(m => m.blind_id) ?? [];
+  const hostedIds = new Set<string>(memberships?.filter(m => m.role === 'host').map(m => m.blind_id) ?? []);
+  const joinedIds = new Set<string>(memberships?.filter(m => m.role !== 'host').map(m => m.blind_id) ?? []);
 
-  const { data: blinds } = blindIds.length > 0
+  const MEMBER_SELECT = `
+    id, name, status, nosing_enabled, created_at,
+    host:profiles!host_id ( id, discord_username, discord_avatar_url ),
+    blind_members ( user_id, role, profile:profiles!user_id ( id, discord_username, discord_avatar_url ) ),
+    samples ( id )
+  `;
+
+  const { data: myBlinds } = myBlindIds.length > 0
     ? await supabase
         .from('blinds')
-        .select(`
-          id,
-          name,
-          status,
-          nosing_enabled,
-          created_at,
-          host:profiles!host_id (
-            id,
-            discord_username,
-            discord_avatar_url
-          ),
-          blind_members (
-            user_id,
-            role,
-            profile:profiles!user_id (
-              id,
-              discord_username,
-              discord_avatar_url
-            )
-          ),
-          samples ( id )
-        `)
-        .in('id', blindIds)
+        .select(MEMBER_SELECT)
+        .in('id', myBlindIds)
         .order('created_at', { ascending: false })
     : { data: [] };
 
-  const activeOrSetup = blinds?.filter(b => b.status !== 'complete') ?? [];
-  const completed = blinds?.filter(b => b.status === 'complete') ?? [];
+  const hostedBlinds = (myBlinds ?? []).filter(b => hostedIds.has(b.id));
+  const joinedBlinds = (myBlinds ?? []).filter(b => joinedIds.has(b.id));
+
+  // Public blinds: all active/setup blinds the user hasn't joined
+  const { data: publicBlinds } = await supabase
+    .from('blinds')
+    .select(`
+      id, name, status, nosing_enabled, created_at,
+      host:profiles!host_id ( id, discord_username, discord_avatar_url ),
+      samples ( id )
+    `)
+    .in('status', ['active', 'setup'])
+    .order('created_at', { ascending: false });
+
+  const discoverBlinds = (publicBlinds ?? []).filter(b => !myBlindIds.includes(b.id));
 
   return (
     <div className="min-h-screen">
       <Nav profile={profile} />
       <div className="max-w-3xl mx-auto px-4 py-8">
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-display italic font-bold text-parchment">Your blinds</h1>
+        <div className="flex items-center justify-between mb-8">
+          <h1 className="text-2xl font-display italic font-bold text-parchment">Dashboard</h1>
           <Link
             href="/blinds/new"
             className="bg-amber hover:bg-amber/80 text-black text-sm font-medium px-4 py-2 rounded-lg transition-colors"
@@ -68,45 +78,69 @@ export default async function DashboardPage() {
           </Link>
         </div>
 
-        {activeOrSetup.length > 0 && (
-          <section className="mb-8">
-            <p className="text-xs font-semibold text-smoke uppercase tracking-wider mb-3">Active</p>
+        {/* Hosting */}
+        <section className="mb-8">
+          <p className="text-xs font-semibold text-smoke uppercase tracking-wider mb-3">Hosting</p>
+          {hostedBlinds.length === 0 ? (
+            <p className="text-sm text-muted">You are not hosting any blinds yet.</p>
+          ) : (
             <div className="flex flex-col gap-3">
-              {activeOrSetup.map(blind => (
-                <BlindCard
-                  key={blind.id}
-                  blind={blind as any}
-                  currentUserId={user.id}
-                />
+              {hostedBlinds.map(blind => (
+                <BlindCard key={blind.id} blind={blind as any} currentUserId={user.id} />
               ))}
             </div>
-          </section>
-        )}
+          )}
+        </section>
 
-        {completed.length > 0 && (
-          <>
-            <hr className="border-[#222] mb-6" />
-            <section>
-              <p className="text-xs font-semibold text-smoke uppercase tracking-wider mb-3">Completed</p>
-              <div className="flex flex-col gap-3 opacity-70">
-                {completed.map(blind => (
-                  <BlindCard
-                    key={blind.id}
-                    blind={blind as any}
-                    currentUserId={user.id}
-                  />
-                ))}
-              </div>
-            </section>
-          </>
-        )}
+        <hr className="border-[#222] mb-8" />
 
-        {blinds?.length === 0 && (
-          <div className="text-center py-16 text-muted">
-            <p className="text-lg">No blinds yet.</p>
-            <p className="text-sm mt-1">Create one or wait for someone to share a link.</p>
-          </div>
-        )}
+        {/* Joined */}
+        <section className="mb-8">
+          <p className="text-xs font-semibold text-smoke uppercase tracking-wider mb-3">Joined</p>
+          {joinedBlinds.length === 0 ? (
+            <p className="text-sm text-muted">You have not joined any blinds yet.</p>
+          ) : (
+            <div className="flex flex-col gap-3">
+              {joinedBlinds.map(blind => (
+                <BlindCard key={blind.id} blind={blind as any} currentUserId={user.id} />
+              ))}
+            </div>
+          )}
+        </section>
+
+        <hr className="border-[#222] mb-8" />
+
+        {/* Discover */}
+        <section>
+          <p className="text-xs font-semibold text-smoke uppercase tracking-wider mb-3">Discover</p>
+          {discoverBlinds.length === 0 ? (
+            <p className="text-sm text-muted">No open blinds to join right now.</p>
+          ) : (
+            <div className="flex flex-col gap-3">
+              {discoverBlinds.map(blind => {
+                const badge = STATUS_BADGE[blind.status as BlindStatus];
+                const host = blind.host as { discord_username: string } | null;
+                const sampleCount = (blind.samples as { id: string }[]).length;
+                return (
+                  <Link key={blind.id} href={`/blinds/${blind.id}`} className="block">
+                    <div className="bg-cream rounded-xl px-5 py-4 hover:border-[#C9B99A] transition-colors" style={{ border: '0.5px solid #E5DDD0' }}>
+                      <div className="flex items-center justify-between gap-4">
+                        <div className="flex-1 min-w-0">
+                          <span className="font-semibold text-[#0D0D0D] truncate block">{blind.name}</span>
+                          <p className="text-xs text-[#666] mt-1">
+                            {sampleCount} sample{sampleCount !== 1 ? 's' : ''} · {blind.nosing_enabled ? 'Nose + Taste' : 'Taste only'}
+                            {host && ` · hosted by ${host.discord_username}`}
+                          </p>
+                        </div>
+                        <Badge variant={badge.variant}>{badge.label}</Badge>
+                      </div>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+        </section>
       </div>
     </div>
   );

@@ -188,6 +188,7 @@ export default async function TastingPage({
     <div className="min-h-screen">
       <Nav profile={profile} backHref={`/blinds/${blindId}`} backLabel="Lobby" />
       <div className="max-w-xl mx-auto px-4 py-6">
+        <p className="text-xs text-muted mb-3">{blind.name}</p>
         <FlightProgressBar
           samples={sortedSamples}
           currentSampleId={sampleId}
@@ -197,15 +198,16 @@ export default async function TastingPage({
         />
         <div className="mb-4">
           {blind.nosing_enabled && (
-            <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider mb-3 ${
-              phase === 'nose'
-                ? 'bg-amber text-black'
-                : 'border border-[#444] text-parchment'
-            }`}>
-              {phase === 'nose' ? 'Nosing Round' : 'Tasting Round'}
-            </span>
+            <div className="flex justify-center mb-2">
+              <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider ${
+                phase === 'nose'
+                  ? 'bg-amber text-black'
+                  : 'border border-[#444] text-parchment'
+              }`}>
+                {phase === 'nose' ? 'Nosing Round' : 'Tasting Round'}
+              </span>
+            </div>
           )}
-          <p className="text-xs text-muted">{blind.name}</p>
           <h1 className="text-2xl font-display italic font-bold text-parchment">
             Sample {sample.label}
           </h1>

@@ -1,3 +1,5 @@
+import { Fragment } from 'react';
+
 interface Sample {
   id: string;
   label: string;
@@ -22,7 +24,7 @@ export function FlightProgressBar({
   const currentIdx = samples.findIndex(s => s.id === currentSampleId);
 
   return (
-    <div className="flex items-center gap-0 mb-6">
+    <div className="flex items-start mb-6">
       {samples.map((sample, idx) => {
         const isRevealed = revealedSampleIds.has(sample.id);
         const isNosed = nosingEnabled && nosedSampleIds.has(sample.id) && !isRevealed;
@@ -46,7 +48,7 @@ export function FlightProgressBar({
         const sublabel = isRevealed ? 'Done' : isNosed ? 'Nosed' : isCurrent ? 'Current' : isNext ? 'Next' : 'Locked';
 
         return (
-          <div key={sample.id} className="flex items-center flex-1">
+          <Fragment key={sample.id}>
             <div className="flex flex-col items-center">
               <div
                 className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold border-2 transition-colors overflow-hidden ${circleClass}`}
@@ -58,12 +60,12 @@ export function FlightProgressBar({
             </div>
             {idx < samples.length - 1 && (
               <div
-                className={`flex-1 h-0.5 mx-1 transition-colors ${
+                className={`flex-1 h-0.5 mx-1 mt-3.5 transition-colors ${
                   isRevealed ? 'bg-amber' : 'bg-[#333]'
                 }`}
               />
             )}
-          </div>
+          </Fragment>
         );
       })}
     </div>

@@ -119,7 +119,7 @@ export default async function TastingPage({
     return (
       <div className="min-h-screen">
         <Nav profile={profile} backHref={`/blinds/${blindId}`} backLabel="Lobby" />
-        <div className="max-w-2xl mx-auto px-4 py-6">
+        <div className="px-4 pt-6">
           <FlightProgressBar
             samples={sortedSamples}
             currentSampleId={sampleId}
@@ -127,6 +127,8 @@ export default async function TastingPage({
             nosedSampleIds={nosedSampleIds}
             nosingEnabled={blind.nosing_enabled}
           />
+        </div>
+        <div className="max-w-2xl mx-auto px-4 pb-6">
           <RevealCard
             blindId={blindId}
             sample={sample}
@@ -187,22 +189,7 @@ export default async function TastingPage({
   return (
     <div className="min-h-screen">
       <Nav profile={profile} backHref={`/blinds/${blindId}`} backLabel="Lobby" />
-      <div className="max-w-xl mx-auto px-4 py-6">
-        <div className="mb-1">
-          <p className="text-xs text-muted">{blind.name}</p>
-          <h1 className="text-2xl font-display italic font-bold text-parchment">
-            Sample {sample.label}
-            {blind.nosing_enabled && (
-              <span className="ml-2 text-sm font-sans font-normal text-smoke">
-                — {phase === 'nose' ? 'Nosing' : 'Tasting'}
-              </span>
-            )}
-          </h1>
-        </div>
-        <p className="text-sm text-smoke mb-4">
-          Answer all questions below, then submit to {phase === 'nose' ? 'lock in your nose notes' : 'reveal and move on'}.
-        </p>
-
+      <div className="px-4 pt-6">
         <FlightProgressBar
           samples={sortedSamples}
           currentSampleId={sampleId}
@@ -210,7 +197,26 @@ export default async function TastingPage({
           nosedSampleIds={nosedSampleIds}
           nosingEnabled={blind.nosing_enabled}
         />
-
+      </div>
+      <div className="max-w-xl mx-auto px-4 pb-6">
+        <div className="mb-4">
+          {blind.nosing_enabled && (
+            <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider mb-3 ${
+              phase === 'nose'
+                ? 'bg-amber text-black'
+                : 'border border-[#444] text-parchment'
+            }`}>
+              {phase === 'nose' ? 'Nosing Round' : 'Tasting Round'}
+            </span>
+          )}
+          <p className="text-xs text-muted">{blind.name}</p>
+          <h1 className="text-2xl font-display italic font-bold text-parchment">
+            Sample {sample.label}
+          </h1>
+        </div>
+        <p className="text-sm text-smoke mb-4">
+          Answer all questions below, then submit to {phase === 'nose' ? 'lock in your nose notes' : 'reveal and move on'}.
+        </p>
         <QuestionSheet
           blindId={blindId}
           sampleId={sampleId}

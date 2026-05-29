@@ -12,6 +12,7 @@ export async function createBlind(formData: FormData) {
   if (!name) throw new Error('Blind name is required');
 
   const nosingEnabled = formData.get('nosing_enabled') === 'true';
+  const roundOrder = formData.get('round_order') as string || 'interleaved';
 
   const { data: blind, error: blindError } = await supabase
     .from('blinds')
@@ -19,6 +20,7 @@ export async function createBlind(formData: FormData) {
       name,
       host_id: user.id,
       nosing_enabled: nosingEnabled,
+      round_order: roundOrder,
       status: 'setup',
     })
     .select('id')

@@ -21,23 +21,20 @@ export default async function TastingPage({
     .eq('id', user.id)
     .single();
 
-  // Get blind info
   const { data: blind } = await supabase
     .from('blinds')
-    .select('id, name, nosing_enabled, status')
+    .select('id, name, nosing_enabled, status, round_order')
     .eq('id', blindId)
     .single();
 
   if (!blind) redirect('/dashboard');
 
-  // Get all samples for flight progress
   const { data: allSamples } = await supabase
     .from('samples')
     .select('id, label, display_order')
     .eq('blind_id', blindId)
     .order('display_order');
 
-  // Get current sample
   const { data: sample } = await supabase
     .from('samples')
     .select('id, label, display_order, bottle_image_url')
@@ -46,7 +43,6 @@ export default async function TastingPage({
 
   if (!sample) redirect(`/blinds/${blindId}`);
 
-  // Check if user has revealed this sample
   const { data: reveal } = await supabase
     .from('sample_reveals')
     .select('id, revealed_at')
@@ -56,17 +52,31 @@ export default async function TastingPage({
 
   const hasRevealed = !!reveal;
 
-  // Get reveals for all samples (for flight progress bar)
+  const sampleIdList = allSamples?.map(s => s.id) ?? [];
+
   const { data: allReveals } = await supabase
     .from('sample_reveals')
     .select('sample_id')
     .eq('user_id', user.id)
-    .in('sample_id', allSamples?.map(s => s.id) ?? []);
+    .in('sample_id', sampleIdList);
 
-  const revealedSampleIds = new Set(allReveals?.map(r => r.sample_id) ?? []);
+  const revealedSampleIds = new Set((allReveals ?? []).map(r => r.sample_id));
+
+  // Fetch nosing submissions for progress bar and phase detection
+  const { data: allNosings } = blind.nosing_enabled && sampleIdList.length > 0
+    ? await supabase
+        .from('sample_nosing_submissions')
+        .select('sample_id')
+        .eq('user_id', user.id)
+        .in('sample_id', sampleIdList)
+    : { data: [] };
+
+  const nosedSampleIds = new Set((allNosings ?? []).map(n => n.sample_id));
+  const hasNosed = nosedSampleIds.has(sampleId);
+
+  const sortedSamples = [...(allSamples ?? [])].sort((a, b) => a.display_order - b.display_order);
 
   if (hasRevealed) {
-    // Post-reveal: show reveal screen
     const { data: attributes } = await supabase
       .from('attributes')
       .select('id, name, value, input_type, scoring_type')
@@ -103,7 +113,6 @@ export default async function TastingPage({
           .in('question_id', questionIds)
       : { data: [] };
 
-    const sortedSamples = [...(allSamples ?? [])].sort((a, b) => a.display_order - b.display_order);
     const currentIdx = sortedSamples.findIndex(s => s.id === sampleId);
     const nextSample = sortedSamples[currentIdx + 1] ?? null;
 
@@ -115,6 +124,8 @@ export default async function TastingPage({
             samples={sortedSamples}
             currentSampleId={sampleId}
             revealedSampleIds={revealedSampleIds}
+            nosedSampleIds={nosedSampleIds}
+            nosingEnabled={blind.nosing_enabled}
           />
           <RevealCard
             blindId={blindId}
@@ -130,7 +141,7 @@ export default async function TastingPage({
     );
   }
 
-  // Pre-reveal: fetch attributes for this sample, then their questions
+  // Pre-reveal: fetch attributes then questions, filter by current phase
   const { data: sampleAttributes } = await supabase
     .from('attributes')
     .select('id, name, input_type, scoring_type, brackets')
@@ -145,13 +156,21 @@ export default async function TastingPage({
         .in('attribute_id', attrIds)
     : { data: [] };
 
-  const validQuestions = (rawQuestions ?? []).map((q: any) => ({
+  const allValidQuestions = (rawQuestions ?? []).map((q: any) => ({
     id: q.id,
     round: q.round,
     attribute: sampleAttributes?.find(a => a.id === q.attribute_id) ?? null,
   })).filter((q: any) => q.attribute);
 
-  // Init answer rows if needed
+  // Determine phase
+  const hasNoseQuestions = allValidQuestions.some(q => q.round === 'nose');
+  const phase: 'nose' | 'taste' =
+    blind.nosing_enabled && hasNoseQuestions && !hasNosed ? 'nose' : 'taste';
+
+  const validQuestions = blind.nosing_enabled
+    ? allValidQuestions.filter(q => q.round === phase)
+    : allValidQuestions;
+
   const questionIds = validQuestions.map((q: any) => q.id);
 
   const { data: existingAnswers } = questionIds.length > 0
@@ -162,7 +181,8 @@ export default async function TastingPage({
         .in('question_id', questionIds)
     : { data: [] };
 
-  const sortedSamples = [...(allSamples ?? [])].sort((a, b) => a.display_order - b.display_order);
+  const currentIdx = sortedSamples.findIndex(s => s.id === sampleId);
+  const nextSample = sortedSamples[currentIdx + 1] ?? null;
 
   return (
     <div className="min-h-screen">
@@ -170,25 +190,26 @@ export default async function TastingPage({
       <div className="max-w-xl mx-auto px-4 py-6">
         <div className="mb-1">
           <p className="text-xs text-muted">{blind.name}</p>
-          <h1 className="text-2xl font-display italic font-bold text-parchment">Sample {sample.label}</h1>
+          <h1 className="text-2xl font-display italic font-bold text-parchment">
+            Sample {sample.label}
+            {blind.nosing_enabled && (
+              <span className="ml-2 text-sm font-sans font-normal text-smoke">
+                — {phase === 'nose' ? 'Nosing' : 'Tasting'}
+              </span>
+            )}
+          </h1>
         </div>
         <p className="text-sm text-smoke mb-4">
-          Answer all questions below, then submit to reveal and move on.
+          Answer all questions below, then submit to {phase === 'nose' ? 'lock in your nose notes' : 'reveal and move on'}.
         </p>
 
         <FlightProgressBar
           samples={sortedSamples}
           currentSampleId={sampleId}
           revealedSampleIds={revealedSampleIds}
+          nosedSampleIds={nosedSampleIds}
+          nosingEnabled={blind.nosing_enabled}
         />
-
-        {blind.nosing_enabled && (
-          <div className="mt-4 mb-2">
-            <span className="inline-block px-2.5 py-1 bg-[#1a1a1a] text-smoke text-xs font-medium rounded-full">
-              Tasting round
-            </span>
-          </div>
-        )}
 
         <QuestionSheet
           blindId={blindId}
@@ -196,7 +217,8 @@ export default async function TastingPage({
           sampleLabel={sample.label}
           questions={validQuestions as any}
           existingAnswers={existingAnswers as any ?? []}
-          nextSampleLabel={sortedSamples[sortedSamples.findIndex(s => s.id === sampleId) + 1]?.label}
+          phase={phase}
+          nextSampleLabel={nextSample?.label}
         />
       </div>
     </div>

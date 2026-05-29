@@ -26,6 +26,7 @@ export default async function BlindLobbyPage({
       name,
       status,
       nosing_enabled,
+      round_order,
       host_id,
       host:profiles!host_id (
         id,
@@ -59,7 +60,29 @@ export default async function BlindLobbyPage({
   if (currentMember && blind.status === 'complete') {
     redirect(`/blinds/${blindId}/leaderboard`);
   }
-  const firstSample = (blind.samples as any[]).sort((a, b) => a.display_order - b.display_order)[0];
+
+  const sortedSamples = [...(blind.samples as any[])].sort((a: any, b: any) => a.display_order - b.display_order);
+  const sampleIds = sortedSamples.map((s: any) => s.id as string);
+
+  let nextSampleId: string | null = null;
+  if (currentMember && sampleIds.length > 0) {
+    const [{ data: reveals }, { data: nosings }] = await Promise.all([
+      supabase.from('sample_reveals').select('sample_id').eq('user_id', user.id).in('sample_id', sampleIds),
+      blind.nosing_enabled
+        ? supabase.from('sample_nosing_submissions').select('sample_id').eq('user_id', user.id).in('sample_id', sampleIds)
+        : Promise.resolve({ data: [] }),
+    ]);
+
+    const revealedIds = new Set((reveals ?? []).map((r: any) => r.sample_id as string));
+    const nosedIds = new Set((nosings ?? []).map((n: any) => n.sample_id as string));
+
+    if (blind.nosing_enabled && blind.round_order === 'all_nose_first') {
+      const firstUnnosed = sortedSamples.find((s: any) => !nosedIds.has(s.id));
+      nextSampleId = firstUnnosed?.id ?? sortedSamples.find((s: any) => !revealedIds.has(s.id))?.id ?? null;
+    } else {
+      nextSampleId = sortedSamples.find((s: any) => !revealedIds.has(s.id))?.id ?? null;
+    }
+  }
 
   return (
     <div className="min-h-screen">
@@ -69,7 +92,7 @@ export default async function BlindLobbyPage({
         currentUserId={user.id}
         isHost={isHost}
         isMember={!!currentMember}
-        firstSampleId={firstSample?.id ?? null}
+        firstSampleId={nextSampleId}
       />
     </div>
   );

@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect, useTransition, useRef } from 'react';
-import { saveAnswerDraft, submitSample, initAnswers } from '@/app/blinds/[blindId]/taste/[sampleId]/actions';
+import { useRouter } from 'next/navigation';
+import { saveAnswerDraft, submitSample, submitNosing, initAnswers } from '@/app/blinds/[blindId]/taste/[sampleId]/actions';
 import { Button } from '@/components/ui/Button';
 import { FreeTextQuestion } from './FreeTextQuestion';
 import { NumericQuestion } from './NumericQuestion';
@@ -34,6 +35,7 @@ interface QuestionSheetProps {
   sampleLabel: string;
   questions: Question[];
   existingAnswers: ExistingAnswer[];
+  phase: 'nose' | 'taste';
   nextSampleLabel?: string;
 }
 
@@ -43,8 +45,10 @@ export function QuestionSheet({
   sampleLabel,
   questions,
   existingAnswers,
+  phase,
   nextSampleLabel,
 }: QuestionSheetProps) {
+  const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [values, setValues] = useState<Record<string, string>>(() => {
     const init: Record<string, string> = {};
@@ -82,7 +86,14 @@ export function QuestionSheet({
   }
 
   function handleSubmit() {
-    startTransition(() => submitSample(blindId, sampleId));
+    if (phase === 'nose') {
+      startTransition(async () => {
+        const result = await submitNosing(blindId, sampleId);
+        router.push(result.redirectTo);
+      });
+    } else {
+      startTransition(() => submitSample(blindId, sampleId));
+    }
   }
 
   // Sort questions: standard order, then custom
@@ -159,12 +170,18 @@ export function QuestionSheet({
 
       <div className="flex items-center justify-between pt-2 border-t border-[#222] mt-6">
         <p className="text-xs text-[#999]">
-          {nextSampleLabel
+          {phase === 'nose'
+            ? 'Submitting locks in your nose notes'
+            : nextSampleLabel
             ? `Submitting reveals the answer and unlocks Sample ${nextSampleLabel}`
             : 'Submitting reveals the answer'}
         </p>
         <Button onClick={handleSubmit} disabled={isPending}>
-          {isPending ? 'Submitting...' : `Submit Sample ${sampleLabel}`}
+          {isPending
+            ? 'Submitting...'
+            : phase === 'nose'
+            ? `Submit nosing — Sample ${sampleLabel}`
+            : `Submit Sample ${sampleLabel}`}
         </Button>
       </div>
     </div>

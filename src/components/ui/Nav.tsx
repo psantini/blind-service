@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { Profile } from '@/types';
+import { UserMenu } from './UserMenu';
 
 interface NavProps {
   profile?: Profile | null;
@@ -36,11 +37,7 @@ export function Nav({ profile, backHref, backLabel }: NavProps) {
         </Link>
 
         <div className="w-24 flex justify-end">
-          {profile && (
-            <span className="uppercase tracking-[0.12em] text-smoke truncate max-w-[96px]" style={{ fontSize: '11px' }}>
-              {profile.discord_username}
-            </span>
-          )}
+          {profile && <UserMenu username={profile.discord_username} />}
         </div>
       </div>
     </nav>

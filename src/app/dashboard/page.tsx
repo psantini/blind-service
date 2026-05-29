@@ -119,7 +119,7 @@ export default async function DashboardPage() {
             <div className="flex flex-col gap-3">
               {discoverBlinds.map(blind => {
                 const badge = STATUS_BADGE[blind.status as BlindStatus];
-                const host = blind.host as { discord_username: string } | null;
+                const host = blind.host as unknown as { discord_username: string } | null;
                 const sampleCount = (blind.samples as { id: string }[]).length;
                 return (
                   <Link key={blind.id} href={`/blinds/${blind.id}`} className="block">

@@ -84,6 +84,44 @@ export function RevealCard({
     questions.map(q => [q.id, q.attribute ? attrMap[q.attribute.id] ?? null : null])
   );
 
+  const noseQuestions = questions.filter(q => q.round === 'nose');
+  const tasteQuestions = questions.filter(q => q.round === 'taste');
+  const hasNoseRound = noseQuestions.length > 0;
+
+  function renderAnswerRow(q: QuestionWithAttr, userAnswers: Answer[], isMyRow: boolean) {
+    const attr = questionAttrMap[q.id];
+    if (!attr) return null;
+    const correctAttr = attributes.find(a => a.id === attr.id);
+    const answer = userAnswers.find(a => a.question_id === q.id);
+    const { text: pts, color: ptsColor } = pointDisplay(answer);
+    const ansColor = answer && correctAttr ? answerColor(answer, correctAttr.value) : 'text-muted';
+    const attrLabel = attr.name === 'finish_type' ? 'Finish type' : attr.name;
+
+    if (isMyRow) {
+      return (
+        <div key={q.id} className="grid grid-cols-4 px-5 py-2.5 text-sm items-center">
+          <span className="text-[#666] capitalize">{attrLabel}</span>
+          <span className="text-[#0D0D0D] font-medium">{correctAttr?.value ?? '—'}</span>
+          <span className={ansColor}>{answer?.value || '—'}</span>
+          <span className={`text-right text-xs ${ptsColor}`}>{pts}</span>
+        </div>
+      );
+    }
+    return (
+      <span key={q.id} className={`text-xs px-2 py-1 bg-[#EDE7D5] rounded ${ansColor}`}>
+        {attr.name === 'finish_type' ? 'Finish' : attr.name}: {answer?.value ?? '—'} ({pts})
+      </span>
+    );
+  }
+
+  function renderRoundHeader(label: string) {
+    return (
+      <div className="px-5 py-1.5 bg-[#EDE7D5]" style={{ borderBottom: '0.5px solid #E5DDD0' }}>
+        <p className="text-[10px] font-semibold text-[#888] uppercase tracking-widest">{label}</p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4 mt-4">
       {/* Header */}
@@ -139,23 +177,20 @@ export function RevealCard({
             <span>You said</span>
             <span className="text-right">Pts</span>
           </div>
-          {questions.map(q => {
-            const attr = questionAttrMap[q.id];
-            if (!attr) return null;
-            const correctAttr = attributes.find(a => a.id === attr.id);
-            const myAnswer = myAnswers.find(a => a.question_id === q.id);
-            const { text: pts, color: ptsColor } = pointDisplay(myAnswer);
-            const ansColor = myAnswer && correctAttr ? answerColor(myAnswer, correctAttr.value) : 'text-muted';
-
-            return (
-              <div key={q.id} className="grid grid-cols-4 px-5 py-2.5 text-sm items-center">
-                <span className="text-[#666] capitalize">{attr.name === 'finish_type' ? 'Finish type' : attr.name}</span>
-                <span className="text-[#0D0D0D] font-medium">{correctAttr?.value ?? '—'}</span>
-                <span className={ansColor}>{myAnswer?.value || '—'}</span>
-                <span className={`text-right text-xs ${ptsColor}`}>{pts}</span>
-              </div>
-            );
-          })}
+          {hasNoseRound ? (
+            <>
+              {renderRoundHeader('Nosing')}
+              {noseQuestions.map(q => renderAnswerRow(q, myAnswers, true))}
+              {tasteQuestions.length > 0 && (
+                <>
+                  {renderRoundHeader('Tasting')}
+                  {tasteQuestions.map(q => renderAnswerRow(q, myAnswers, true))}
+                </>
+              )}
+            </>
+          ) : (
+            questions.map(q => renderAnswerRow(q, myAnswers, true))
+          )}
         </div>
       </div>
 
@@ -191,25 +226,30 @@ export function RevealCard({
                         {userTotal} pts{userPending > 0 && <span className="text-amber ml-1">+?</span>}
                       </span>
                     </div>
-                    <div className="flex flex-wrap gap-1.5">
-                      {questions.map(q => {
-                        const attr = questionAttrMap[q.id];
-                        if (!attr) return null;
-                        const correctAttr = attributes.find(a => a.id === attr.id);
-                        const theirAnswer = userAnswers.find(a => a.question_id === q.id);
-                        const { text: pts } = pointDisplay(theirAnswer);
-                        const color = theirAnswer && correctAttr ? answerColor(theirAnswer, correctAttr.value) : 'text-muted';
-
-                        return (
-                          <span
-                            key={q.id}
-                            className={`text-xs px-2 py-1 bg-[#EDE7D5] rounded ${color}`}
-                          >
-                            {attr.name === 'finish_type' ? 'Finish' : attr.name}: {theirAnswer?.value ?? '—'} ({pts})
-                          </span>
-                        );
-                      })}
-                    </div>
+                    {hasNoseRound ? (
+                      <div className="space-y-2">
+                        {noseQuestions.length > 0 && (
+                          <div>
+                            <p className="text-[10px] font-semibold text-[#888] uppercase tracking-widest mb-1">Nosing</p>
+                            <div className="flex flex-wrap gap-1.5">
+                              {noseQuestions.map(q => renderAnswerRow(q, userAnswers, false))}
+                            </div>
+                          </div>
+                        )}
+                        {tasteQuestions.length > 0 && (
+                          <div>
+                            <p className="text-[10px] font-semibold text-[#888] uppercase tracking-widest mb-1">Tasting</p>
+                            <div className="flex flex-wrap gap-1.5">
+                              {tasteQuestions.map(q => renderAnswerRow(q, userAnswers, false))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="flex flex-wrap gap-1.5">
+                        {questions.map(q => renderAnswerRow(q, userAnswers, false))}
+                      </div>
+                    )}
                   </div>
                 );
               })}

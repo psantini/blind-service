@@ -119,7 +119,7 @@ export default async function TastingPage({
     return (
       <div className="min-h-screen">
         <Nav profile={profile} backHref={`/blinds/${blindId}`} backLabel="Lobby" />
-        <div className="px-4 pt-6">
+        <div className="max-w-2xl mx-auto px-4 py-6">
           <FlightProgressBar
             samples={sortedSamples}
             currentSampleId={sampleId}
@@ -127,8 +127,6 @@ export default async function TastingPage({
             nosedSampleIds={nosedSampleIds}
             nosingEnabled={blind.nosing_enabled}
           />
-        </div>
-        <div className="max-w-2xl mx-auto px-4 pb-6">
           <RevealCard
             blindId={blindId}
             sample={sample}
@@ -189,7 +187,7 @@ export default async function TastingPage({
   return (
     <div className="min-h-screen">
       <Nav profile={profile} backHref={`/blinds/${blindId}`} backLabel="Lobby" />
-      <div className="px-4 pt-6">
+      <div className="max-w-xl mx-auto px-4 py-6">
         <FlightProgressBar
           samples={sortedSamples}
           currentSampleId={sampleId}
@@ -197,8 +195,6 @@ export default async function TastingPage({
           nosedSampleIds={nosedSampleIds}
           nosingEnabled={blind.nosing_enabled}
         />
-      </div>
-      <div className="max-w-xl mx-auto px-4 pb-6">
         <div className="mb-4">
           {blind.nosing_enabled && (
             <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider mb-3 ${

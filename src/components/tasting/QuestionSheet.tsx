@@ -78,16 +78,7 @@ export function QuestionSheet({
     if (missingIds.length > 0) {
       initAnswers(missingIds).catch(console.error);
     }
-    // Persist the visual 'no' default for boolean questions that have no saved value yet
-    for (const q of questions) {
-      if (q.attribute.input_type === 'boolean') {
-        const saved = existingAnswers.find(a => a.question_id === q.id)?.value;
-        if (saved === null || saved === undefined) {
-          saveAnswerDraft(q.id, 'no').catch(console.error);
-        }
-      }
-    }
-  // answerIds and existingAnswers intentionally omitted — snapshot at mount only
+  // answerIds intentionally omitted — snapshot at mount only
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -101,14 +92,22 @@ export function QuestionSheet({
   }
 
   function handleSubmit() {
-    if (phase === 'nose') {
-      startTransition(async () => {
+    startTransition(async () => {
+      // Flush all local state to DB before the RPC runs — this catches values
+      // that were pre-populated in state (e.g. boolean default 'no') but never
+      // explicitly saved via handleChange.
+      await Promise.all(
+        questions
+          .filter(q => values[q.id] !== undefined)
+          .map(q => saveAnswerDraft(q.id, values[q.id]))
+      );
+      if (phase === 'nose') {
         const result = await submitNosing(blindId, sampleId);
         router.push(result.redirectTo);
-      });
-    } else {
-      startTransition(() => submitSample(blindId, sampleId));
-    }
+      } else {
+        await submitSample(blindId, sampleId);
+      }
+    });
   }
 
   // Sort questions: standard order, then custom

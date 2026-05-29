@@ -55,6 +55,12 @@ export function QuestionSheet({
     existingAnswers.forEach(a => {
       if (a.value !== null) init[a.question_id] = a.value;
     });
+    // Pre-populate boolean questions with 'no' so the visual default is persisted on submit
+    for (const q of questions) {
+      if (q.attribute.input_type === 'boolean' && init[q.id] === undefined) {
+        init[q.id] = 'no';
+      }
+    }
     return init;
   });
   const [answerIds, setAnswerIds] = useState<Record<string, string>>(() => {
@@ -72,7 +78,16 @@ export function QuestionSheet({
     if (missingIds.length > 0) {
       initAnswers(missingIds).catch(console.error);
     }
-  // answerIds intentionally omitted — snapshot at mount only
+    // Persist the visual 'no' default for boolean questions that have no saved value yet
+    for (const q of questions) {
+      if (q.attribute.input_type === 'boolean') {
+        const saved = existingAnswers.find(a => a.question_id === q.id)?.value;
+        if (saved === null || saved === undefined) {
+          saveAnswerDraft(q.id, 'no').catch(console.error);
+        }
+      }
+    }
+  // answerIds and existingAnswers intentionally omitted — snapshot at mount only
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

@@ -1,17 +1,18 @@
+import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
+import { DestructiveButton } from '@/components/admin/DestructiveButton';
+import { deleteBlind } from './actions';
 
 export default async function AdminPage() {
   const supabase = await createClient();
 
-  const { data: profiles } = await supabase
-    .from('profiles')
-    .select('id, discord_username, discord_avatar_url, is_super_admin')
-    .order('discord_username');
-
-  const { data: blinds } = await supabase
-    .from('blinds')
-    .select('id, name, status, created_at, host:profiles!host_id(discord_username)')
-    .order('created_at', { ascending: false });
+  const [{ data: profiles }, { data: blinds }] = await Promise.all([
+    supabase.from('profiles').select('id, discord_username, is_super_admin').order('discord_username'),
+    supabase
+      .from('blinds')
+      .select('id, name, status, created_at, nosing_enabled, host:profiles!host_id(discord_username)')
+      .order('created_at', { ascending: false }),
+  ]);
 
   return (
     <div className="space-y-8">
@@ -61,20 +62,29 @@ export default async function AdminPage() {
         <div className="bg-cream rounded-xl overflow-hidden" style={{ border: '0.5px solid #E5DDD0' }}>
           <div className="divide-y divide-[#E5DDD0]">
             {blinds?.map(b => (
-              <div key={b.id} className="flex items-center justify-between px-5 py-3">
-                <div>
-                  <p className="text-sm text-[#0D0D0D] font-medium">{b.name}</p>
+              <div key={b.id} className="flex items-center justify-between px-5 py-3 gap-4">
+                <div className="min-w-0">
+                  <Link href={`/admin/blinds/${b.id}`} className="text-sm font-medium text-[#0D0D0D] hover:text-amber transition-colors">
+                    {b.name}
+                  </Link>
                   <p className="text-xs text-muted">
-                    hosted by {(b.host as any)?.discord_username ?? '—'} · {new Date(b.created_at).toLocaleDateString()}
+                    {(b.host as any)?.discord_username ?? '—'} · {new Date(b.created_at).toLocaleDateString()}
+                    {b.nosing_enabled && ' · nosing'}
                   </p>
                 </div>
-                <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                  b.status === 'active' ? 'bg-green-900/40 text-green-400' :
-                  b.status === 'complete' ? 'bg-[#333] text-muted' :
-                  'bg-amber/20 text-amber'
-                }`}>
-                  {b.status}
-                </span>
+                <div className="flex items-center gap-3 shrink-0">
+                  <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                    b.status === 'active' ? 'bg-green-900/40 text-green-400' :
+                    b.status === 'complete' ? 'bg-[#333] text-muted' :
+                    'bg-amber/20 text-amber'
+                  }`}>
+                    {b.status}
+                  </span>
+                  <DestructiveButton
+                    label="Delete"
+                    action={() => deleteBlind(b.id)}
+                  />
+                </div>
               </div>
             ))}
           </div>

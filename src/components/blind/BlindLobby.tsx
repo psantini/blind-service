@@ -36,6 +36,8 @@ interface BlindLobbyProps {
   isHost: boolean;
   isMember: boolean;
   firstSampleId: string | null;
+  revealedSampleIds: Set<string>;
+  nosedSampleIds: Set<string>;
 }
 
 const STATUS_BADGE: Record<BlindStatus, { label: string; variant: 'green' | 'amber' | 'grey' }> = {
@@ -44,7 +46,7 @@ const STATUS_BADGE: Record<BlindStatus, { label: string; variant: 'green' | 'amb
   complete: { label: 'Complete',  variant: 'grey'  },
 };
 
-export function BlindLobby({ blind, currentUserId, isHost, isMember, firstSampleId }: BlindLobbyProps) {
+export function BlindLobby({ blind, currentUserId, isHost, isMember, firstSampleId, revealedSampleIds, nosedSampleIds }: BlindLobbyProps) {
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
   const badge = STATUS_BADGE[blind.status];
@@ -137,19 +139,58 @@ export function BlindLobby({ blind, currentUserId, isHost, isMember, firstSample
         </div>
       </div>
 
-      {samples.length > 0 && (
+      {samples.length > 0 && isMember && (
+        <div className="bg-cream rounded-xl p-5" style={{ border: '0.5px solid #E5DDD0' }}>
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-xs font-semibold text-[#666] uppercase tracking-wider">Your progress</p>
+            <p className="text-xs text-[#999]">{revealedSampleIds.size} of {samples.length} revealed</p>
+          </div>
+          <div className="flex gap-2 flex-wrap">
+            {samples.map(s => {
+              const isRevealed = revealedSampleIds.has(s.id);
+              const isNosed = nosedSampleIds.has(s.id) && !isRevealed;
+
+              const circle = (
+                <div
+                  className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-semibold border-2 overflow-hidden transition-colors ${
+                    isRevealed
+                      ? 'bg-amber border-amber text-black'
+                      : isNosed
+                      ? 'border-amber text-parchment'
+                      : 'bg-[#EDE7D5] border-[#E5DDD0] text-[#0D0D0D]'
+                  }`}
+                  style={isNosed ? { background: 'linear-gradient(to bottom, #C9973F 50%, #0D0D0D 50%)' } : undefined}
+                >
+                  {isRevealed ? '✓' : s.label}
+                </div>
+              );
+
+              if (isRevealed) {
+                return (
+                  <Link key={s.id} href={`/blinds/${blind.id}/taste/${s.id}`} title={`Review Sample ${s.label}`}>
+                    {circle}
+                  </Link>
+                );
+              }
+              return <div key={s.id}>{circle}</div>;
+            })}
+          </div>
+        </div>
+      )}
+
+      {samples.length > 0 && !isMember && (
         <div className="bg-cream rounded-xl p-5" style={{ border: '0.5px solid #E5DDD0' }}>
           <p className="text-xs font-semibold text-[#666] uppercase tracking-wider mb-3">
             Samples ({samples.length})
           </p>
           <div className="flex gap-2 flex-wrap">
             {samples.map(s => (
-              <span
+              <div
                 key={s.id}
-                className="w-9 h-9 rounded-full bg-[#EDE7D5] flex items-center justify-center text-sm font-semibold text-[#0D0D0D]"
+                className="w-9 h-9 rounded-full bg-[#EDE7D5] border-2 border-[#E5DDD0] flex items-center justify-center text-sm font-semibold text-[#0D0D0D]"
               >
                 {s.label}
-              </span>
+              </div>
             ))}
           </div>
         </div>

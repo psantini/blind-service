@@ -82,6 +82,21 @@ export default async function BlindLobbyPage({
     } else {
       nextSampleId = sortedSamples.find((s: any) => !revealedIds.has(s.id))?.id ?? null;
     }
+
+    return (
+      <div className="min-h-screen">
+        <Nav profile={profile} backHref="/dashboard" backLabel="Dashboard" />
+        <BlindLobby
+          blind={blind as any}
+          currentUserId={user.id}
+          isHost={isHost}
+          isMember={!!currentMember}
+          firstSampleId={nextSampleId}
+          revealedSampleIds={revealedIds}
+          nosedSampleIds={nosedIds}
+        />
+      </div>
+    );
   }
 
   return (
@@ -93,6 +108,8 @@ export default async function BlindLobbyPage({
         isHost={isHost}
         isMember={!!currentMember}
         firstSampleId={nextSampleId}
+        revealedSampleIds={new Set()}
+        nosedSampleIds={new Set()}
       />
     </div>
   );

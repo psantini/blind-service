@@ -1,13 +1,15 @@
 'use client';
 
 import { useState, useRef, useEffect, useTransition } from 'react';
+import Link from 'next/link';
 import { logout } from '@/app/actions';
 
 interface UserMenuProps {
   username: string;
+  isSuperAdmin?: boolean;
 }
 
-export function UserMenu({ username }: UserMenuProps) {
+export function UserMenu({ username, isSuperAdmin = false }: UserMenuProps) {
   const [open, setOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
   const ref = useRef<HTMLDivElement>(null);
@@ -37,6 +39,15 @@ export function UserMenu({ username }: UserMenuProps) {
           className="absolute right-0 top-full mt-2 w-40 rounded-xl overflow-hidden z-50"
           style={{ background: '#111', border: '0.5px solid #2a2a2a' }}
         >
+          {isSuperAdmin && (
+            <Link
+              href="/admin"
+              onClick={() => setOpen(false)}
+              className="block px-4 py-3 text-sm text-smoke hover:text-parchment hover:bg-[#1a1a1a] transition-colors"
+            >
+              Admin
+            </Link>
+          )}
           <button
             onClick={() => startTransition(() => logout())}
             disabled={isPending}

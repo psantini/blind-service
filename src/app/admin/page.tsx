@@ -82,7 +82,7 @@ export default async function AdminPage() {
                   </span>
                   <DestructiveButton
                     label="Delete"
-                    action={() => deleteBlind(b.id)}
+                    action={deleteBlind.bind(null, b.id)}
                   />
                 </div>
               </div>

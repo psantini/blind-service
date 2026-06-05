@@ -11,6 +11,7 @@ export interface Profile {
   discord_username: string;
   discord_avatar_url: string | null;
   created_at: string;
+  is_super_admin: boolean;
 }
 
 export interface Blind {

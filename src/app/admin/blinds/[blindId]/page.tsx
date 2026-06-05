@@ -72,7 +72,7 @@ export default async function AdminBlindPage({
                 <p className="text-sm font-semibold text-[#0D0D0D]">Sample {sample.label}</p>
                 <DestructiveButton
                   label="Delete sample"
-                  action={() => deleteSample(blindId, sample.id)}
+                  action={deleteSample.bind(null, blindId, sample.id)}
                 />
               </div>
 
@@ -105,7 +105,7 @@ export default async function AdminBlindPage({
                         <DestructiveButton
                           label="Reset"
                           confirmLabel="Confirm reset"
-                          action={() => resetUserSample(blindId, sample.id, m.user_id)}
+                          action={resetUserSample.bind(null, blindId, sample.id, m.user_id)}
                         />
                       </div>
                     );

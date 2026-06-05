@@ -1,17 +1,19 @@
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import { DestructiveButton } from '@/components/admin/DestructiveButton';
-import { deleteBlind } from './actions';
+import { deleteBlind, deleteUser } from './actions';
 
 export default async function AdminPage() {
   const supabase = await createClient();
 
-  const [{ data: profiles }, { data: blinds }] = await Promise.all([
-    supabase.from('profiles').select('id, discord_username, is_super_admin').order('discord_username'),
+  const [{ data: profiles }, { data: blinds }, { data: guilds }, { data: { user } }] = await Promise.all([
+    supabase.from('profiles').select('id, discord_username, is_super_admin, discord_guild_ids').order('discord_username'),
     supabase
       .from('blinds')
       .select('id, name, status, created_at, nosing_enabled, host:profiles!host_id(discord_username)')
       .order('created_at', { ascending: false }),
+    supabase.from('guilds').select('id, discord_guild_id, name').order('name'),
+    supabase.auth.getUser(),
   ]);
 
   return (
@@ -43,22 +45,41 @@ export default async function AdminPage() {
         <h2 className="text-lg font-semibold text-parchment mb-3">Users</h2>
         <div className="bg-cream rounded-xl overflow-hidden" style={{ border: '0.5px solid #E5DDD0' }}>
           <div className="divide-y divide-[#E5DDD0]">
-            {profiles?.map(p => (
-              <div key={p.id} className="flex items-center justify-between px-5 py-3">
-                <div className="flex items-center gap-3">
-                  <div className="w-7 h-7 rounded-full bg-[#E5DDD0] flex items-center justify-center text-xs font-bold text-[#0D0D0D] shrink-0">
-                    {p.discord_username?.[0]?.toUpperCase()}
+            {profiles?.map(p => {
+              const memberGuilds = (guilds ?? []).filter(g =>
+                (p.discord_guild_ids as string[] ?? []).includes(g.discord_guild_id)
+              );
+              const canDelete = !p.is_super_admin && p.id !== user?.id;
+              return (
+                <div key={p.id} className="flex items-center justify-between px-5 py-3 gap-4">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-7 h-7 rounded-full bg-[#E5DDD0] flex items-center justify-center text-xs font-bold text-[#0D0D0D] shrink-0">
+                      {p.discord_username?.[0]?.toUpperCase()}
+                    </div>
+                    <div className="min-w-0">
+                      <span className="text-sm text-[#0D0D0D]">{p.discord_username}</span>
+                      {memberGuilds.length > 0 && (
+                        <p className="text-xs text-muted mt-0.5">
+                          {memberGuilds.map(g => g.name).join(', ')}
+                        </p>
+                      )}
+                    </div>
                   </div>
-                  <span className="text-sm text-[#0D0D0D]">{p.discord_username}</span>
+                  <div className="flex items-center gap-3 shrink-0">
+                    {p.is_super_admin && (
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-amber text-black font-semibold">admin</span>
+                    )}
+                    {canDelete && (
+                      <DestructiveButton
+                        label="Remove"
+                        confirmLabel="Confirm remove"
+                        action={deleteUser.bind(null, p.id)}
+                      />
+                    )}
+                  </div>
                 </div>
-                <div className="flex items-center gap-3">
-                  {p.is_super_admin && (
-                    <span className="text-xs px-2 py-0.5 rounded-full bg-amber text-black font-semibold">admin</span>
-                  )}
-                  <span className="text-xs text-muted font-mono">{p.id.slice(0, 8)}…</span>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </div>

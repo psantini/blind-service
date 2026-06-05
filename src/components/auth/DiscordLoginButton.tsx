@@ -11,7 +11,7 @@ export function DiscordLoginButton({ next }: { next?: string }) {
       provider: 'discord',
       options: {
         redirectTo: callbackUrl.toString(),
-        scopes: 'identify email',
+        scopes: 'identify email guilds',
       },
     });
   }

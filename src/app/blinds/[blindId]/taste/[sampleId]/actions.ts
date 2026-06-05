@@ -4,19 +4,6 @@ import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { scoreSampleAnswers } from '@/lib/scoring';
 import { revalidatePath } from 'next/cache';
-import type { SupabaseClient } from '@supabase/supabase-js';
-
-async function sampleAttributeIds(supabase: SupabaseClient, sampleId: string): Promise<string[]> {
-  const { data } = await supabase.from('attributes').select('id').eq('sample_id', sampleId);
-  return (data ?? []).map(a => a.id);
-}
-
-async function noseQuestionIds(supabase: SupabaseClient, sampleId: string): Promise<string[]> {
-  const attrIds = await sampleAttributeIds(supabase, sampleId);
-  if (attrIds.length === 0) return [];
-  const { data } = await supabase.from('questions').select('id').in('attribute_id', attrIds).eq('round', 'nose');
-  return (data ?? []).map(q => q.id);
-}
 
 export async function initAnswers(questionIds: string[]) {
   const supabase = await createClient();
@@ -58,20 +45,12 @@ export async function submitNosing(blindId: string, sampleId: string): Promise<{
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('Not authenticated');
 
-  // Lock nose-round answers
-  await supabase
-    .from('answers')
-    .update({ submitted_at: new Date().toISOString() })
-    .eq('user_id', user.id)
-    .is('submitted_at', null)
-    .in('question_id', await noseQuestionIds(supabase, sampleId));
+  const { error } = await supabase.rpc('lock_and_submit_nosing', {
+    p_sample_id: sampleId,
+    p_user_id: user.id,
+  });
+  if (error) throw error;
 
-  // Record nosing submission
-  await supabase
-    .from('sample_nosing_submissions')
-    .upsert({ sample_id: sampleId, user_id: user.id }, { onConflict: 'sample_id,user_id', ignoreDuplicates: true });
-
-  // Score nose answers
   await scoreSampleAnswers(createAdminClient(), sampleId, user.id);
 
   const { data: blind } = await supabase
@@ -124,29 +103,12 @@ export async function submitSample(blindId: string, sampleId: string) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('Not authenticated');
 
-  // Lock all remaining unsubmitted answers for this sample
-  const attrIds = await sampleAttributeIds(supabase, sampleId);
-  const { data: questionRows } = await supabase
-    .from('questions')
-    .select('id')
-    .in('attribute_id', attrIds);
-  const questionIds = (questionRows ?? []).map(q => q.id);
+  const { error } = await supabase.rpc('lock_and_reveal_sample', {
+    p_sample_id: sampleId,
+    p_user_id: user.id,
+  });
+  if (error) throw error;
 
-  if (questionIds.length > 0) {
-    await supabase
-      .from('answers')
-      .update({ submitted_at: new Date().toISOString() })
-      .eq('user_id', user.id)
-      .is('submitted_at', null)
-      .in('question_id', questionIds);
-  }
-
-  // Record the reveal
-  await supabase
-    .from('sample_reveals')
-    .upsert({ sample_id: sampleId, user_id: user.id }, { onConflict: 'sample_id,user_id', ignoreDuplicates: true });
-
-  // Score all taste answers (and any nose answers not yet scored)
   await scoreSampleAnswers(createAdminClient(), sampleId, user.id);
 
   revalidatePath(`/blinds/${blindId}/taste/${sampleId}`);

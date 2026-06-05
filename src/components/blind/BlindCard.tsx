@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { Badge } from '@/components/ui/Badge';
+import { GuildBadge } from '@/components/ui/GuildBadge';
 import { BlindStatus } from '@/types';
 
 interface BlindCardProps {
@@ -16,6 +17,7 @@ interface BlindCardProps {
       profile: { id: string; discord_username: string; discord_avatar_url: string | null } | null;
     }>;
     samples: Array<{ id: string }>;
+    guild?: { name: string; discord_guild_id: string; icon_hash: string | null } | null;
   };
   currentUserId: string;
 }
@@ -51,6 +53,7 @@ export function BlindCard({ blind, currentUserId }: BlindCardProps) {
   const roundType = blind.nosing_enabled ? 'Nose + Taste' : 'Taste only';
   const visibleMembers = blind.blind_members.slice(0, 4);
   const overflowCount = blind.blind_members.length - 4;
+  const guild = blind.guild ?? null;
 
   return (
     <Link href={`/blinds/${blind.id}`} className="block">
@@ -63,9 +66,9 @@ export function BlindCard({ blind, currentUserId }: BlindCardProps) {
                 <Badge variant="default">host</Badge>
               )}
             </div>
-            <p className="text-xs text-[#666] mt-1">
-              {sampleCount} sample{sampleCount !== 1 ? 's' : ''} · {roundType}
-              {blind.host && ` · hosted by ${blind.host.discord_username}`}
+            <p className="text-xs text-[#666] mt-1 flex items-center gap-1.5 flex-wrap">
+              <span>{sampleCount} sample{sampleCount !== 1 ? 's' : ''} · {roundType}{blind.host && ` · hosted by ${blind.host.discord_username}`}</span>
+              {guild && <GuildBadge guild={guild} />}
             </p>
           </div>
 

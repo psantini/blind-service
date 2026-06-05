@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { Nav } from '@/components/ui/Nav';
 import { BlindCard } from '@/components/blind/BlindCard';
 import { Badge } from '@/components/ui/Badge';
+import { GuildBadge } from '@/components/ui/GuildBadge';
 import { BlindStatus } from '@/types';
 
 const STATUS_BADGE: Record<BlindStatus, { label: string; variant: 'green' | 'amber' | 'grey' }> = {
@@ -37,7 +38,8 @@ export default async function DashboardPage() {
     id, name, status, nosing_enabled, created_at,
     host:profiles!host_id ( id, discord_username, discord_avatar_url ),
     blind_members ( user_id, role, profile:profiles!user_id ( id, discord_username, discord_avatar_url ) ),
-    samples ( id )
+    samples ( id ),
+    guild:guilds ( name, discord_guild_id, icon_hash )
   `;
 
   const { data: myBlinds } = myBlindIds.length > 0
@@ -57,7 +59,8 @@ export default async function DashboardPage() {
     .select(`
       id, name, status, nosing_enabled, created_at,
       host:profiles!host_id ( id, discord_username, discord_avatar_url ),
-      samples ( id )
+      samples ( id ),
+      guild:guilds ( name, discord_guild_id, icon_hash )
     `)
     .in('status', ['active', 'setup'])
     .order('created_at', { ascending: false });
@@ -120,6 +123,7 @@ export default async function DashboardPage() {
               {discoverBlinds.map(blind => {
                 const badge = STATUS_BADGE[blind.status as BlindStatus];
                 const host = blind.host as unknown as { discord_username: string } | null;
+                const guild = blind.guild as unknown as { name: string; discord_guild_id: string; icon_hash: string | null } | null;
                 const sampleCount = (blind.samples as { id: string }[]).length;
                 return (
                   <Link key={blind.id} href={`/blinds/${blind.id}`} className="block">
@@ -127,9 +131,9 @@ export default async function DashboardPage() {
                       <div className="flex items-center justify-between gap-4">
                         <div className="flex-1 min-w-0">
                           <span className="font-semibold text-[#0D0D0D] truncate block">{blind.name}</span>
-                          <p className="text-xs text-[#666] mt-1">
-                            {sampleCount} sample{sampleCount !== 1 ? 's' : ''} · {blind.nosing_enabled ? 'Nose + Taste' : 'Taste only'}
-                            {host && ` · hosted by ${host.discord_username}`}
+                          <p className="text-xs text-[#666] mt-1 flex items-center gap-1.5 flex-wrap">
+                            <span>{sampleCount} sample{sampleCount !== 1 ? 's' : ''} · {blind.nosing_enabled ? 'Nose + Taste' : 'Taste only'}{host && ` · hosted by ${host.discord_username}`}</span>
+                            {guild && <GuildBadge guild={guild} />}
                           </p>
                         </div>
                         <Badge variant={badge.variant}>{badge.label}</Badge>

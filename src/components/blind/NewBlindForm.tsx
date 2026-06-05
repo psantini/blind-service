@@ -5,6 +5,11 @@ import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { createBlind } from '@/app/blinds/new/actions';
 
+interface GuildOption {
+  id: string;
+  name: string;
+}
+
 function Toggle({ enabled, onChange }: { enabled: boolean; onChange: () => void }) {
   return (
     <button
@@ -25,7 +30,7 @@ function Toggle({ enabled, onChange }: { enabled: boolean; onChange: () => void 
   );
 }
 
-export function NewBlindForm() {
+export function NewBlindForm({ guilds }: { guilds: GuildOption[] }) {
   const [nosingEnabled, setNosingEnabled] = useState(false);
   const [roundOrder, setRoundOrder] = useState<'interleaved' | 'all_nose_first'>('interleaved');
   const [isPending, startTransition] = useTransition();
@@ -84,6 +89,22 @@ export function NewBlindForm() {
               <p className="text-xs mt-0.5 text-[#666]">{option.description}</p>
             </button>
           ))}
+        </div>
+      )}
+
+      {guilds.length > 0 && (
+        <div>
+          <label className="block text-sm font-medium text-[#0D0D0D] mb-1.5">Discord server</label>
+          <select
+            name="guild_id"
+            defaultValue=""
+            className="w-full rounded-lg border border-[#E5DDD0] bg-[#EDE7D5] text-[#0D0D0D] px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-amber"
+          >
+            <option value="">None (any authenticated user)</option>
+            {guilds.map(g => (
+              <option key={g.id} value={g.id}>{g.name}</option>
+            ))}
+          </select>
         </div>
       )}
 

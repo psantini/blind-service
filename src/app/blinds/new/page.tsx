@@ -8,11 +8,10 @@ export default async function NewBlindPage() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/');
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', user.id)
-    .single();
+  const [{ data: profile }, { data: guilds }] = await Promise.all([
+    supabase.from('profiles').select('*').eq('id', user.id).single(),
+    supabase.from('guilds').select('id, name').order('name'),
+  ]);
 
   return (
     <div className="min-h-screen">
@@ -20,7 +19,7 @@ export default async function NewBlindPage() {
       <div className="max-w-2xl mx-auto px-4 py-8">
         <h1 className="text-2xl font-display italic font-bold text-parchment mb-1">New blind</h1>
         <p className="text-smoke text-sm mb-8">Configure the blind then add samples in the next step.</p>
-        <NewBlindForm />
+        <NewBlindForm guilds={guilds ?? []} />
       </div>
     </div>
   );

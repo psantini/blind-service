@@ -16,8 +16,14 @@ export default async function AdminPage() {
 
   return (
     <div className="space-y-8">
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-display italic font-bold text-parchment">Overview</h1>
+        <Link href="/admin/guilds" className="text-xs uppercase tracking-[0.12em] text-smoke hover:text-parchment transition-colors">
+          Discord servers →
+        </Link>
+      </div>
+
       <div>
-        <h1 className="text-2xl font-display italic font-bold text-parchment mb-4">Overview</h1>
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
           {[
             { label: 'Users', value: profiles?.length ?? 0 },

@@ -73,6 +73,14 @@ export interface Answer {
   points_earned: number | null;
 }
 
+export interface Guild {
+  id: string;
+  discord_guild_id: string;
+  name: string;
+  icon_hash: string | null;
+  created_at: string;
+}
+
 export interface AllTimeStats {
   user_id: string;
   discord_username: string;

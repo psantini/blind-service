@@ -37,7 +37,7 @@ export function Nav({ profile, backHref, backLabel }: NavProps) {
         </Link>
 
         <div className="w-24 flex justify-end">
-          {profile && <UserMenu username={profile.discord_username} />}
+          {profile && <UserMenu username={profile.discord_username} isSuperAdmin={profile.is_super_admin} />}
         </div>
       </div>
     </nav>

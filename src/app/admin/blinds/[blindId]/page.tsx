@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { DestructiveButton } from '@/components/admin/DestructiveButton';
+import { Leaderboard } from '@/components/leaderboard/Leaderboard';
 import { deleteSample, resetUserSample } from '../../actions';
 
 export default async function AdminBlindPage({
@@ -10,6 +11,8 @@ export default async function AdminBlindPage({
 }) {
   const { blindId } = await params;
   const supabase = await createClient();
+
+  const { data: { user } } = await supabase.auth.getUser();
 
   const { data: blind } = await supabase
     .from('blinds')
@@ -32,14 +35,54 @@ export default async function AdminBlindPage({
 
   const sampleIds = (samples ?? []).map(s => s.id);
 
-  const [{ data: reveals }, { data: nosings }] = await Promise.all([
+  const [{ data: reveals }, { data: nosings }, { data: attributeRows }] = await Promise.all([
     sampleIds.length > 0
       ? supabase.from('sample_reveals').select('sample_id, user_id').in('sample_id', sampleIds)
       : Promise.resolve({ data: [] }),
     sampleIds.length > 0
       ? supabase.from('sample_nosing_submissions').select('sample_id, user_id').in('sample_id', sampleIds)
       : Promise.resolve({ data: [] }),
+    sampleIds.length > 0
+      ? supabase.from('attributes').select('id').in('sample_id', sampleIds)
+      : Promise.resolve({ data: [] }),
   ]);
+
+  const attrIds = (attributeRows ?? []).map((a: any) => a.id);
+
+  const { data: questionRows } = attrIds.length > 0
+    ? await supabase.from('questions').select('id, round').in('attribute_id', attrIds)
+    : { data: [] };
+
+  const questionIds = (questionRows ?? []).map((q: any) => q.id);
+
+  const { data: answers } = questionIds.length > 0
+    ? await supabase
+        .from('answers')
+        .select('user_id, question_id, points_earned, fuzzy_flagged, host_approved, profile:profiles!user_id(id, discord_username, discord_avatar_url)')
+        .in('question_id', questionIds)
+        .not('submitted_at', 'is', null)
+    : { data: [] };
+
+  const questionRoundMap = Object.fromEntries(
+    (questionRows ?? []).map((q: any) => [q.id, q.round])
+  );
+
+  const scoreMap: Record<string, { profile: any; total: number; nose: number; taste: number; pending: number }> = {};
+  for (const answer of (answers ?? []) as any[]) {
+    if (!scoreMap[answer.user_id]) {
+      scoreMap[answer.user_id] = { profile: answer.profile, total: 0, nose: 0, taste: 0, pending: 0 };
+    }
+    const pts = answer.points_earned ?? 0;
+    const round = questionRoundMap[answer.question_id];
+    if (answer.fuzzy_flagged && answer.host_approved === null) {
+      scoreMap[answer.user_id].pending++;
+    } else {
+      scoreMap[answer.user_id].total += pts;
+      if (round === 'nose') scoreMap[answer.user_id].nose += pts;
+      if (round === 'taste') scoreMap[answer.user_id].taste += pts;
+    }
+  }
+  const ranked = Object.values(scoreMap).sort((a, b) => b.total - a.total);
 
   const revealSet = new Set((reveals ?? []).map(r => `${r.sample_id}:${r.user_id}`));
   const nosingSet = new Set((nosings ?? []).map(n => `${n.sample_id}:${n.user_id}`));
@@ -115,6 +158,15 @@ export default async function AdminBlindPage({
             </div>
           );
         })}
+      </div>
+
+      <div>
+        <h2 className="text-lg font-semibold text-parchment mb-3">Leaderboard</h2>
+        <Leaderboard
+          entries={ranked}
+          currentUserId={user?.id ?? ''}
+          nosingEnabled={blind.nosing_enabled}
+        />
       </div>
     </div>
   );

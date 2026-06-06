@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { redirect } from 'next/navigation';
 import { DestructiveButton } from '@/components/admin/DestructiveButton';
 import { Leaderboard } from '@/components/leaderboard/Leaderboard';
@@ -34,6 +35,7 @@ export default async function AdminBlindPage({
     .eq('blind_id', blindId);
 
   const sampleIds = (samples ?? []).map(s => s.id);
+  const adminClient = createAdminClient();
 
   const [{ data: reveals }, { data: nosings }, { data: attributeRows }] = await Promise.all([
     sampleIds.length > 0
@@ -43,20 +45,20 @@ export default async function AdminBlindPage({
       ? supabase.from('sample_nosing_submissions').select('sample_id, user_id').in('sample_id', sampleIds)
       : Promise.resolve({ data: [] }),
     sampleIds.length > 0
-      ? supabase.from('attributes').select('id').in('sample_id', sampleIds)
+      ? adminClient.from('attributes').select('id').in('sample_id', sampleIds)
       : Promise.resolve({ data: [] }),
   ]);
 
   const attrIds = (attributeRows ?? []).map((a: any) => a.id);
 
   const { data: questionRows } = attrIds.length > 0
-    ? await supabase.from('questions').select('id, round').in('attribute_id', attrIds)
+    ? await adminClient.from('questions').select('id, round').in('attribute_id', attrIds)
     : { data: [] };
 
   const questionIds = (questionRows ?? []).map((q: any) => q.id);
 
   const { data: answers } = questionIds.length > 0
-    ? await supabase
+    ? await adminClient
         .from('answers')
         .select('user_id, question_id, points_earned, fuzzy_flagged, host_approved, profile:profiles!user_id(id, discord_username, discord_avatar_url)')
         .in('question_id', questionIds)

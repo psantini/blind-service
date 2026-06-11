@@ -1,6 +1,7 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { redirect } from 'next/navigation';
 
 export async function createBlind(formData: FormData) {
@@ -14,6 +15,17 @@ export async function createBlind(formData: FormData) {
   const nosingEnabled = formData.get('nosing_enabled') === 'true';
   const roundOrder = formData.get('round_order') as string || 'interleaved';
   const guildId = (formData.get('group_id') as string) || null;
+
+  if (guildId) {
+    const adminClient = createAdminClient();
+    const { data: membership } = await adminClient
+      .from('group_members')
+      .select('group_id')
+      .eq('group_id', guildId)
+      .eq('user_id', user.id)
+      .single();
+    if (!membership) throw new Error('Forbidden');
+  }
 
   const { data: blind, error: blindError } = await supabase
     .from('blinds')

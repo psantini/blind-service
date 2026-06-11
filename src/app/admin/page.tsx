@@ -1,20 +1,32 @@
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { DestructiveButton } from '@/components/admin/DestructiveButton';
 import { deleteBlind, deleteUser } from './actions';
 
 export default async function AdminPage() {
   const supabase = await createClient();
+  const adminClient = createAdminClient();
 
-  const [{ data: profiles }, { data: blinds }, { data: guilds }, { data: { user } }] = await Promise.all([
-    supabase.from('profiles').select('id, discord_username, is_super_admin, discord_guild_ids').order('discord_username'),
+  const [{ data: profiles }, { data: blinds }, { data: memberships }, { data: { user } }] = await Promise.all([
+    adminClient.from('profiles').select('id, discord_username, is_super_admin').order('discord_username'),
     supabase
       .from('blinds')
       .select('id, name, status, created_at, nosing_enabled, host:profiles!host_id(discord_username)')
       .order('created_at', { ascending: false }),
-    supabase.from('guilds').select('id, discord_guild_id, name').order('name'),
+    adminClient
+      .from('group_members')
+      .select('user_id, group:groups(name)'),
     supabase.auth.getUser(),
   ]);
+
+  const groupsByUser = (memberships ?? []).reduce<Record<string, string[]>>((acc, m) => {
+    const name = (m.group as any)?.name as string | undefined;
+    if (!name) return acc;
+    if (!acc[m.user_id]) acc[m.user_id] = [];
+    acc[m.user_id]!.push(name);
+    return acc;
+  }, {});
 
   return (
     <div className="space-y-8">
@@ -46,9 +58,7 @@ export default async function AdminPage() {
         <div className="bg-cream rounded-xl overflow-hidden" style={{ border: '0.5px solid #E5DDD0' }}>
           <div className="divide-y divide-[#E5DDD0]">
             {profiles?.map(p => {
-              const memberGuilds = (guilds ?? []).filter(g =>
-                (p.discord_guild_ids as string[] ?? []).includes(g.discord_guild_id)
-              );
+              const userGroups = groupsByUser[p.id] ?? [];
               const canDelete = !p.is_super_admin && p.id !== user?.id;
               return (
                 <div key={p.id} className="flex items-center justify-between px-5 py-3 gap-4">
@@ -58,9 +68,9 @@ export default async function AdminPage() {
                     </div>
                     <div className="min-w-0">
                       <span className="text-sm text-[#0D0D0D]">{p.discord_username}</span>
-                      {memberGuilds.length > 0 && (
+                      {userGroups.length > 0 && (
                         <p className="text-xs text-muted mt-0.5">
-                          {memberGuilds.map(g => g.name).join(', ')}
+                          {userGroups.join(', ')}
                         </p>
                       )}
                     </div>

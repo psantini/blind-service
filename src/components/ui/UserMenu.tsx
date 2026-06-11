@@ -7,9 +7,10 @@ import { logout } from '@/app/actions';
 interface UserMenuProps {
   username: string;
   isSuperAdmin?: boolean;
+  isGroupManager?: boolean;
 }
 
-export function UserMenu({ username, isSuperAdmin = false }: UserMenuProps) {
+export function UserMenu({ username, isSuperAdmin = false, isGroupManager = false }: UserMenuProps) {
   const [open, setOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
   const ref = useRef<HTMLDivElement>(null);
@@ -46,6 +47,15 @@ export function UserMenu({ username, isSuperAdmin = false }: UserMenuProps) {
               className="block px-4 py-3 text-sm text-smoke hover:text-parchment hover:bg-[#1a1a1a] transition-colors"
             >
               Admin
+            </Link>
+          )}
+          {isGroupManager && (
+            <Link
+              href="/groups"
+              onClick={() => setOpen(false)}
+              className="block px-4 py-3 text-sm text-smoke hover:text-parchment hover:bg-[#1a1a1a] transition-colors"
+            >
+              Groups
             </Link>
           )}
           <button

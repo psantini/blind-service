@@ -6,9 +6,10 @@ interface NavProps {
   profile?: Profile | null;
   backHref?: string;
   backLabel?: string;
+  isGroupManager?: boolean;
 }
 
-export function Nav({ profile, backHref, backLabel }: NavProps) {
+export function Nav({ profile, backHref, backLabel, isGroupManager }: NavProps) {
   return (
     <nav style={{ background: '#000', borderBottom: '0.5px solid #1a1a1a' }}>
       <div className="max-w-4xl mx-auto px-5 h-14 flex items-center justify-between">
@@ -37,7 +38,13 @@ export function Nav({ profile, backHref, backLabel }: NavProps) {
         </Link>
 
         <div className="w-24 flex justify-end">
-          {profile && <UserMenu username={profile.discord_username} isSuperAdmin={profile.is_super_admin} />}
+          {profile && (
+            <UserMenu
+              username={profile.discord_username}
+              isSuperAdmin={profile.is_super_admin}
+              isGroupManager={isGroupManager ?? profile.is_super_admin}
+            />
+          )}
         </div>
       </div>
     </nav>

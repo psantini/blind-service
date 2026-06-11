@@ -13,6 +13,26 @@ async function assertSuperAdmin() {
   return user.id;
 }
 
+async function assertGroupManager(groupId: string) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('Not authenticated');
+
+  const { data: profile } = await supabase.from('profiles').select('is_super_admin').eq('id', user.id).single();
+  if (profile?.is_super_admin) return user.id;
+
+  const adminClient = createAdminClient();
+  const { data: membership } = await adminClient
+    .from('group_members')
+    .select('role')
+    .eq('group_id', groupId)
+    .eq('user_id', user.id)
+    .single();
+
+  if (membership?.role !== 'admin') throw new Error('Forbidden');
+  return user.id;
+}
+
 export async function createGroup(formData: FormData) {
   await assertSuperAdmin();
   const name = (formData.get('name') as string)?.trim();
@@ -22,7 +42,7 @@ export async function createGroup(formData: FormData) {
   const adminClient = createAdminClient();
   const { error } = await adminClient.from('groups').insert({ name, discord_guild_id: discordGuildId });
   if (error) throw error;
-  revalidatePath('/admin/groups');
+  revalidatePath('/groups');
 }
 
 export async function deleteGroup(groupId: string) {
@@ -30,12 +50,12 @@ export async function deleteGroup(groupId: string) {
   const adminClient = createAdminClient();
   const { error } = await adminClient.from('groups').delete().eq('id', groupId);
   if (error) throw error;
-  revalidatePath('/admin/groups');
+  revalidatePath('/groups');
 }
 
 export async function createInvite(formData: FormData) {
-  const createdBy = await assertSuperAdmin();
   const groupId = formData.get('group_id') as string;
+  const createdBy = await assertGroupManager(groupId);
   const expiresDays = parseInt(formData.get('expires_days') as string, 10) || 7;
   const maxUsesRaw = (formData.get('max_uses') as string)?.trim();
   const maxUses = maxUsesRaw ? parseInt(maxUsesRaw, 10) : null;
@@ -50,19 +70,33 @@ export async function createInvite(formData: FormData) {
     expires_at: expiresAt,
   });
   if (error) throw error;
-  revalidatePath('/admin/groups');
+  revalidatePath('/groups');
 }
 
-export async function revokeInvite(inviteId: string) {
-  await assertSuperAdmin();
+export async function revokeInvite(groupId: string, inviteId: string) {
+  await assertGroupManager(groupId);
   const adminClient = createAdminClient();
   const { error } = await adminClient.from('group_invites').delete().eq('id', inviteId);
   if (error) throw error;
-  revalidatePath('/admin/groups');
+  revalidatePath('/groups');
+}
+
+export async function addMember(formData: FormData) {
+  const groupId = formData.get('group_id') as string;
+  await assertGroupManager(groupId);
+  const userId = formData.get('user_id') as string;
+  if (!userId) throw new Error('User is required');
+
+  const adminClient = createAdminClient();
+  const { error } = await adminClient
+    .from('group_members')
+    .upsert({ group_id: groupId, user_id: userId }, { onConflict: 'group_id,user_id', ignoreDuplicates: true });
+  if (error) throw error;
+  revalidatePath('/groups');
 }
 
 export async function removeMember(groupId: string, userId: string) {
-  await assertSuperAdmin();
+  await assertGroupManager(groupId);
   const adminClient = createAdminClient();
   const { error } = await adminClient
     .from('group_members')
@@ -70,11 +104,11 @@ export async function removeMember(groupId: string, userId: string) {
     .eq('group_id', groupId)
     .eq('user_id', userId);
   if (error) throw error;
-  revalidatePath('/admin/groups');
+  revalidatePath('/groups');
 }
 
 export async function updateMemberRole(groupId: string, userId: string, role: 'admin' | 'member') {
-  await assertSuperAdmin();
+  await assertGroupManager(groupId);
   const adminClient = createAdminClient();
   const { error } = await adminClient
     .from('group_members')
@@ -82,19 +116,5 @@ export async function updateMemberRole(groupId: string, userId: string, role: 'a
     .eq('group_id', groupId)
     .eq('user_id', userId);
   if (error) throw error;
-  revalidatePath('/admin/groups');
-}
-
-export async function addMember(formData: FormData) {
-  await assertSuperAdmin();
-  const groupId = formData.get('group_id') as string;
-  const userId = formData.get('user_id') as string;
-  if (!groupId || !userId) throw new Error('Group and user are required');
-
-  const adminClient = createAdminClient();
-  const { error } = await adminClient
-    .from('group_members')
-    .upsert({ group_id: groupId, user_id: userId }, { onConflict: 'group_id,user_id', ignoreDuplicates: true });
-  if (error) throw error;
-  revalidatePath('/admin/groups');
+  revalidatePath('/groups');
 }

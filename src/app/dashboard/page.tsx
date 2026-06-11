@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { Nav } from '@/components/ui/Nav';
@@ -24,11 +25,22 @@ export default async function DashboardPage() {
     .eq('id', user.id)
     .single();
 
+  const adminClient = createAdminClient();
+
   // Fetch user's memberships with role
   const { data: memberships } = await supabase
     .from('blind_members')
     .select('blind_id, role')
     .eq('user_id', user.id);
+
+  const { data: groupAdminMemberships } = await adminClient
+    .from('group_members')
+    .select('group_id')
+    .eq('user_id', user.id)
+    .eq('role', 'admin')
+    .limit(1);
+
+  const isGroupManager = (profile?.is_super_admin ?? false) || (groupAdminMemberships ?? []).length > 0;
 
   const myBlindIds = memberships?.map(m => m.blind_id) ?? [];
   const hostedIds = new Set<string>(memberships?.filter(m => m.role === 'host').map(m => m.blind_id) ?? []);
@@ -69,7 +81,7 @@ export default async function DashboardPage() {
 
   return (
     <div className="min-h-screen">
-      <Nav profile={profile} />
+      <Nav profile={profile} isGroupManager={isGroupManager} />
       <div className="max-w-3xl mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-2xl font-display italic font-bold text-parchment">Dashboard</h1>

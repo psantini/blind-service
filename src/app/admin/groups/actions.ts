@@ -72,3 +72,29 @@ export async function removeMember(groupId: string, userId: string) {
   if (error) throw error;
   revalidatePath('/admin/groups');
 }
+
+export async function updateMemberRole(groupId: string, userId: string, role: 'admin' | 'member') {
+  await assertSuperAdmin();
+  const adminClient = createAdminClient();
+  const { error } = await adminClient
+    .from('group_members')
+    .update({ role })
+    .eq('group_id', groupId)
+    .eq('user_id', userId);
+  if (error) throw error;
+  revalidatePath('/admin/groups');
+}
+
+export async function addMember(formData: FormData) {
+  await assertSuperAdmin();
+  const groupId = formData.get('group_id') as string;
+  const userId = formData.get('user_id') as string;
+  if (!groupId || !userId) throw new Error('Group and user are required');
+
+  const adminClient = createAdminClient();
+  const { error } = await adminClient
+    .from('group_members')
+    .upsert({ group_id: groupId, user_id: userId }, { onConflict: 'group_id,user_id', ignoreDuplicates: true });
+  if (error) throw error;
+  revalidatePath('/admin/groups');
+}

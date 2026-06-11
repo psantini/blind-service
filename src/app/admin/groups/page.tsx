@@ -4,7 +4,7 @@ import { DestructiveButton } from '@/components/admin/DestructiveButton';
 import { InviteLink } from '@/components/admin/InviteLink';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
-import { createGroup, deleteGroup, createInvite, revokeInvite, removeMember } from './actions';
+import { createGroup, deleteGroup, createInvite, revokeInvite, removeMember, updateMemberRole, addMember } from './actions';
 
 export default async function GroupsPage() {
   const adminClient = createAdminClient();
@@ -50,6 +50,11 @@ export default async function GroupsPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
+  const { data: allProfiles } = await adminClient
+    .from('profiles')
+    .select('id, discord_username')
+    .order('discord_username');
+
   return (
     <div className="space-y-8">
       <div className="flex items-center justify-between">
@@ -65,6 +70,8 @@ export default async function GroupsPage() {
           const groupMembers = membersByGroup[group.id] ?? [];
           const groupInvites = invitesByGroup[group.id] ?? [];
           const activeInvites = groupInvites.filter(i => new Date(i!.expires_at) > new Date());
+          const memberUserIds = new Set(groupMembers.map(m => m!.user_id));
+          const nonMembers = (allProfiles ?? []).filter(p => !memberUserIds.has(p.id));
 
           return (
             <div key={group.id} className="bg-cream rounded-xl overflow-hidden" style={{ border: '0.5px solid #E5DDD0' }}>
@@ -100,6 +107,7 @@ export default async function GroupsPage() {
                     {groupMembers.map(m => {
                       const profile = (m as any).profile;
                       const isSelf = m!.user_id === user?.id;
+                      const isAdmin = m!.role === 'admin';
                       return (
                         <div key={m!.user_id} className="flex items-center justify-between px-5 py-2.5">
                           <div className="flex items-center gap-2">
@@ -107,21 +115,47 @@ export default async function GroupsPage() {
                               {profile?.discord_username?.[0]?.toUpperCase()}
                             </div>
                             <span className="text-sm text-[#0D0D0D]">{profile?.discord_username}</span>
-                            {m!.role === 'admin' && (
+                            {isAdmin && (
                               <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-amber text-black font-semibold">admin</span>
                             )}
                           </div>
                           {!isSelf && (
-                            <DestructiveButton
-                              label="Remove"
-                              confirmLabel="Confirm remove"
-                              action={removeMember.bind(null, group.id, m!.user_id)}
-                            />
+                            <div className="flex items-center gap-2">
+                              <form action={updateMemberRole.bind(null, group.id, m!.user_id, isAdmin ? 'member' : 'admin')}>
+                                <button
+                                  type="submit"
+                                  className="text-xs px-2 py-0.5 rounded border border-[#444] text-muted hover:text-parchment transition-colors"
+                                >
+                                  {isAdmin ? 'Remove admin' : 'Make admin'}
+                                </button>
+                              </form>
+                              <DestructiveButton
+                                label="Remove"
+                                confirmLabel="Confirm remove"
+                                action={removeMember.bind(null, group.id, m!.user_id)}
+                              />
+                            </div>
                           )}
                         </div>
                       );
                     })}
                   </div>
+                )}
+
+                {/* Add existing user */}
+                {nonMembers.length > 0 && (
+                  <form action={addMember} className="px-5 py-3 flex items-center gap-3" style={{ borderTop: '0.5px solid #E5DDD0' }}>
+                    <input type="hidden" name="group_id" value={group.id} />
+                    <select
+                      name="user_id"
+                      className="flex-1 text-xs rounded border border-[#E5DDD0] bg-[#EDE7D5] text-[#0D0D0D] px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-amber"
+                    >
+                      {nonMembers.map(p => (
+                        <option key={p.id} value={p.id}>{p.discord_username}</option>
+                      ))}
+                    </select>
+                    <Button type="submit" className="text-xs py-1 px-3 shrink-0">Add member →</Button>
+                  </form>
                 )}
               </div>
 

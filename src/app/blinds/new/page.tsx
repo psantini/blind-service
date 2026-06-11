@@ -10,7 +10,7 @@ export default async function NewBlindPage() {
 
   const [{ data: profile }, { data: guilds }] = await Promise.all([
     supabase.from('profiles').select('*').eq('id', user.id).single(),
-    supabase.from('guilds').select('id, name').order('name'),
+    supabase.from('groups').select('id, name').order('name'),
   ]);
 
   return (

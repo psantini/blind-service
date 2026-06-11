@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
-import { DiscordLoginButton } from '@/components/auth/DiscordLoginButton';
+import { LoginButtons } from '@/components/auth/LoginButtons';
 
 export default async function LandingPage({
   searchParams,
@@ -26,7 +26,13 @@ export default async function LandingPage({
           </p>
         )}
 
-        <DiscordLoginButton next={next} />
+        {error === 'not_authorized' && (
+          <p className="text-red-400 text-sm mb-6 bg-[#1A0A0A] border border-[#3A1A1A] rounded-lg px-4 py-3">
+            You don&apos;t have access. Ask a group admin for an invite link.
+          </p>
+        )}
+
+        <LoginButtons next={next} />
       </div>
     </div>
   );

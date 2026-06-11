@@ -20,8 +20,8 @@ export default async function AdminPage() {
     <div className="space-y-8">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-display italic font-bold text-parchment">Overview</h1>
-        <Link href="/admin/guilds" className="text-xs uppercase tracking-[0.12em] text-smoke hover:text-parchment transition-colors">
-          Discord servers →
+        <Link href="/admin/groups" className="text-xs uppercase tracking-[0.12em] text-smoke hover:text-parchment transition-colors">
+          Groups →
         </Link>
       </div>
 

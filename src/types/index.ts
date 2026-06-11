@@ -81,6 +81,32 @@ export interface Guild {
   created_at: string;
 }
 
+export interface Group {
+  id: string;
+  name: string;
+  discord_guild_id: string | null;
+  icon_url: string | null;
+  created_at: string;
+}
+
+export interface GroupMember {
+  group_id: string;
+  user_id: string;
+  role: 'admin' | 'member';
+  joined_at: string;
+}
+
+export interface GroupInvite {
+  id: string;
+  group_id: string;
+  token: string;
+  created_by: string;
+  max_uses: number | null;
+  use_count: number;
+  expires_at: string;
+  created_at: string;
+}
+
 export interface AllTimeStats {
   user_id: string;
   discord_username: string;

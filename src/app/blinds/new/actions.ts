@@ -13,7 +13,7 @@ export async function createBlind(formData: FormData) {
 
   const nosingEnabled = formData.get('nosing_enabled') === 'true';
   const roundOrder = formData.get('round_order') as string || 'interleaved';
-  const guildId = (formData.get('guild_id') as string) || null;
+  const guildId = (formData.get('group_id') as string) || null;
 
   const { data: blind, error: blindError } = await supabase
     .from('blinds')
@@ -23,7 +23,7 @@ export async function createBlind(formData: FormData) {
       nosing_enabled: nosingEnabled,
       round_order: roundOrder,
       status: 'setup',
-      guild_id: guildId,
+      group_id: guildId,
     })
     .select('id')
     .single();

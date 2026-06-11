@@ -27,29 +27,71 @@ export async function GET(request: Request) {
 
     if (!error && session) {
       const adminClient = createAdminClient();
+      const provider = session.user.app_metadata?.provider;
 
-      // Fetch the user's Discord server memberships
-      const userGuildIds = await fetchDiscordGuilds(session.provider_token);
+      if (provider === 'discord') {
+        const userGuildIds = await fetchDiscordGuilds(session.provider_token);
 
-      // Check against registered guilds. If none are registered yet, allow all.
-      const { data: registeredGuilds } = await adminClient
-        .from('guilds')
-        .select('discord_guild_id');
+        // Find all groups linked to a Discord guild
+        const { data: discordLinkedGroups } = await adminClient
+          .from('groups')
+          .select('id, discord_guild_id')
+          .not('discord_guild_id', 'is', null);
 
-      const registeredIds = (registeredGuilds ?? []).map(g => g.discord_guild_id);
-      const hasAccess = registeredIds.length === 0 ||
-        userGuildIds.some(id => registeredIds.includes(id));
+        const linkedGroups = discordLinkedGroups ?? [];
 
-      if (!hasAccess) {
-        await supabase.auth.signOut();
-        return NextResponse.redirect(`${origin}/?error=not_authorized`);
+        if (linkedGroups.length > 0) {
+          const matchingGroupIds = linkedGroups
+            .filter(g => userGuildIds.includes(g.discord_guild_id!))
+            .map(g => g.id);
+
+          const nonMatchingGroupIds = linkedGroups
+            .filter(g => !userGuildIds.includes(g.discord_guild_id!))
+            .map(g => g.id);
+
+          // Add user to groups they're in
+          if (matchingGroupIds.length > 0) {
+            await adminClient
+              .from('group_members')
+              .upsert(
+                matchingGroupIds.map(groupId => ({ group_id: groupId, user_id: session.user.id })),
+                { onConflict: 'group_id,user_id', ignoreDuplicates: true }
+              );
+          }
+
+          // Remove user from Discord-linked groups they've left
+          if (nonMatchingGroupIds.length > 0) {
+            await adminClient
+              .from('group_members')
+              .delete()
+              .eq('user_id', session.user.id)
+              .in('group_id', nonMatchingGroupIds);
+          }
+
+          if (matchingGroupIds.length === 0) {
+            await supabase.auth.signOut();
+            return NextResponse.redirect(`${origin}/?error=not_authorized`);
+          }
+        }
+        // No Discord-linked groups registered → open access for all Discord users
+
+      } else {
+        // Google or other provider: gate on existing group membership
+        // Exception: allow through if they're redeeming an invite on /join
+        const { data: memberships } = await adminClient
+          .from('group_members')
+          .select('group_id')
+          .eq('user_id', session.user.id)
+          .limit(1);
+
+        const hasMembership = (memberships ?? []).length > 0;
+        const isJoiningViaInvite = next.startsWith('/join');
+
+        if (!hasMembership && !isJoiningViaInvite) {
+          await supabase.auth.signOut();
+          return NextResponse.redirect(`${origin}/?error=not_authorized`);
+        }
       }
-
-      // Cache guild memberships on the profile for RLS checks
-      await adminClient
-        .from('profiles')
-        .update({ discord_guild_ids: userGuildIds })
-        .eq('id', session.user.id);
 
       return NextResponse.redirect(`${origin}${next}`);
     }

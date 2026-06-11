@@ -30,7 +30,7 @@ function Toggle({ enabled, onChange }: { enabled: boolean; onChange: () => void 
   );
 }
 
-export function NewBlindForm({ guilds }: { guilds: GuildOption[] }) {
+export function NewBlindForm({ guilds, isSuperAdmin = false }: { guilds: GuildOption[]; isSuperAdmin?: boolean }) {
   const [nosingEnabled, setNosingEnabled] = useState(false);
   const [roundOrder, setRoundOrder] = useState<'interleaved' | 'all_nose_first'>('interleaved');
   const [isPending, startTransition] = useTransition();
@@ -100,7 +100,7 @@ export function NewBlindForm({ guilds }: { guilds: GuildOption[] }) {
             defaultValue=""
             className="w-full rounded-lg border border-[#E5DDD0] bg-[#EDE7D5] text-[#0D0D0D] px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-amber"
           >
-            <option value="">None (any authenticated user)</option>
+            {isSuperAdmin && <option value="">None (any authenticated user)</option>}
             {guilds.map(g => (
               <option key={g.id} value={g.id}>{g.name}</option>
             ))}

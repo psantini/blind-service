@@ -27,7 +27,7 @@ export default async function NewBlindPage() {
       <div className="max-w-2xl mx-auto px-4 py-8">
         <h1 className="text-2xl font-display italic font-bold text-parchment mb-1">New blind</h1>
         <p className="text-smoke text-sm mb-8">Configure the blind then add samples in the next step.</p>
-        <NewBlindForm guilds={guilds ?? []} />
+        <NewBlindForm guilds={guilds ?? []} isSuperAdmin={profile?.is_super_admin ?? false} />
       </div>
     </div>
   );

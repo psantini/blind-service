@@ -16,8 +16,15 @@ export async function createBlind(formData: FormData) {
   const roundOrder = formData.get('round_order') as string || 'interleaved';
   const guildId = (formData.get('group_id') as string) || null;
 
+  const adminClient = createAdminClient();
+  const { data: profile } = await adminClient
+    .from('profiles')
+    .select('is_super_admin')
+    .eq('id', user.id)
+    .single();
+  const isSuperAdmin = profile?.is_super_admin ?? false;
+
   if (guildId) {
-    const adminClient = createAdminClient();
     const { data: membership } = await adminClient
       .from('group_members')
       .select('group_id')
@@ -25,6 +32,8 @@ export async function createBlind(formData: FormData) {
       .eq('user_id', user.id)
       .single();
     if (!membership) throw new Error('Forbidden');
+  } else if (!isSuperAdmin) {
+    throw new Error('Forbidden');
   }
 
   const { data: blind, error: blindError } = await supabase

@@ -30,6 +30,7 @@ export async function reviewFuzzyAnswer(blindId: string, answerId: string, appro
     .eq('id', answerId);
 
   revalidatePath(`/blinds/${blindId}/host`);
+  revalidatePath('/stats');
 }
 
 export async function completeBlind(blindId: string): Promise<{ redirectTo: string }> {
@@ -40,5 +41,6 @@ export async function completeBlind(blindId: string): Promise<{ redirectTo: stri
     .update({ status: 'complete' })
     .eq('id', blindId);
 
+  revalidatePath('/stats');
   return { redirectTo: `/blinds/${blindId}/leaderboard` };
 }

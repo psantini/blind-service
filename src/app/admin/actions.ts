@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { revalidatePath } from 'next/cache';
+import { rescoreSample } from '@/lib/scoring';
 
 async function assertSuperAdmin() {
   const supabase = await createClient();
@@ -43,6 +44,19 @@ export async function deleteBlind(blindId: string) {
   const { supabase } = await assertSuperAdmin();
   const { error } = await supabase.from('blinds').delete().eq('id', blindId);
   if (error) throw error;
+  revalidatePath('/admin');
+}
+
+export async function rescoreAllSamples() {
+  await assertSuperAdmin();
+  const adminClient = createAdminClient();
+
+  const { data: samples } = await adminClient.from('samples').select('id');
+  for (const sample of samples ?? []) {
+    await rescoreSample(sample.id);
+  }
+
+  revalidatePath('/stats');
   revalidatePath('/admin');
 }
 

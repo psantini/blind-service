@@ -52,6 +52,7 @@ export async function submitNosing(blindId: string, sampleId: string): Promise<{
   if (error) throw error;
 
   await scoreSampleAnswers(createAdminClient(), sampleId, user.id);
+  revalidatePath('/stats');
 
   const { data: blind } = await supabase
     .from('blinds')
@@ -112,4 +113,5 @@ export async function submitSample(blindId: string, sampleId: string) {
   await scoreSampleAnswers(createAdminClient(), sampleId, user.id);
 
   revalidatePath(`/blinds/${blindId}/taste/${sampleId}`);
+  revalidatePath('/stats');
 }

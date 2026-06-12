@@ -117,6 +117,7 @@ export async function saveSample(
 
     // Rescore all submitted answers with the updated attribute values
     await rescoreSample(sampleId);
+    revalidatePath('/stats');
   } else {
     // Insert new sample
     const { data: sample } = await supabase

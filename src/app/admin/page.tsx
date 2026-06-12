@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { DestructiveButton } from '@/components/admin/DestructiveButton';
-import { deleteBlind, deleteUser } from './actions';
+import { deleteBlind, deleteUser, rescoreAllSamples } from './actions';
 
 export default async function AdminPage() {
   const supabase = await createClient();
@@ -32,9 +32,19 @@ export default async function AdminPage() {
     <div className="space-y-8">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-display italic font-bold text-parchment">Overview</h1>
-        <Link href="/groups" className="text-xs uppercase tracking-[0.12em] text-smoke hover:text-parchment transition-colors">
-          Groups →
-        </Link>
+        <div className="flex items-center gap-4">
+          <form action={rescoreAllSamples}>
+            <button
+              type="submit"
+              className="text-xs uppercase tracking-[0.12em] text-smoke hover:text-parchment transition-colors"
+            >
+              Rescore all →
+            </button>
+          </form>
+          <Link href="/groups" className="text-xs uppercase tracking-[0.12em] text-smoke hover:text-parchment transition-colors">
+            Groups →
+          </Link>
+        </div>
       </div>
 
       <div>

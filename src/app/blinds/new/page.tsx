@@ -11,15 +11,21 @@ export default async function NewBlindPage() {
 
   const adminClient = createAdminClient();
 
-  const [{ data: profile }, { data: memberships }] = await Promise.all([
-    supabase.from('profiles').select('*').eq('id', user.id).single(),
-    adminClient.from('group_members').select('group_id').eq('user_id', user.id),
-  ]);
+  const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single();
 
-  const groupIds = (memberships ?? []).map(m => m.group_id);
-  const { data: guilds } = groupIds.length > 0
-    ? await adminClient.from('groups').select('id, name').in('id', groupIds).order('name')
-    : { data: [] };
+  let guilds: { id: string; name: string }[] | null;
+  if (profile?.is_super_admin) {
+    ({ data: guilds } = await adminClient.from('groups').select('id, name').order('name'));
+  } else {
+    const { data: memberships } = await adminClient
+      .from('group_members')
+      .select('group_id')
+      .eq('user_id', user.id);
+    const groupIds = (memberships ?? []).map(m => m.group_id);
+    ({ data: guilds } = groupIds.length > 0
+      ? await adminClient.from('groups').select('id, name').in('id', groupIds).order('name')
+      : { data: [] });
+  }
 
   return (
     <div className="min-h-screen">

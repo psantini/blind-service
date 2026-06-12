@@ -14,7 +14,9 @@ export async function createBlind(formData: FormData) {
 
   const nosingEnabled = formData.get('nosing_enabled') === 'true';
   const roundOrder = formData.get('round_order') as string || 'interleaved';
-  const guildId = (formData.get('group_id') as string) || null;
+  const groupId = (formData.get('group_id') as string) || null;
+
+  if (!groupId) throw new Error('A group is required');
 
   const adminClient = createAdminClient();
   const { data: profile } = await adminClient
@@ -22,18 +24,15 @@ export async function createBlind(formData: FormData) {
     .select('is_super_admin')
     .eq('id', user.id)
     .single();
-  const isSuperAdmin = profile?.is_super_admin ?? false;
 
-  if (guildId) {
+  if (!profile?.is_super_admin) {
     const { data: membership } = await adminClient
       .from('group_members')
       .select('group_id')
-      .eq('group_id', guildId)
+      .eq('group_id', groupId)
       .eq('user_id', user.id)
       .single();
     if (!membership) throw new Error('Forbidden');
-  } else if (!isSuperAdmin) {
-    throw new Error('Forbidden');
   }
 
   const { data: blind, error: blindError } = await supabase
@@ -44,7 +43,7 @@ export async function createBlind(formData: FormData) {
       nosing_enabled: nosingEnabled,
       round_order: roundOrder,
       status: 'setup',
-      group_id: guildId,
+      group_id: groupId,
     })
     .select('id')
     .single();

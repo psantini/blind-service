@@ -3,6 +3,8 @@
 -- are all preserved so the currently deployed code keeps working.
 -- Run Migration B (0027) after the new code is deployed and verified.
 
+create extension if not exists pgcrypto;
+
 -- 1. Groups table (provider-agnostic replacement for guilds)
 create table public.groups (
   id                uuid primary key default gen_random_uuid(),
@@ -59,7 +61,7 @@ on conflict do nothing;
 create table public.group_invites (
   id          uuid primary key default gen_random_uuid(),
   group_id    uuid references public.groups on delete cascade not null,
-  token       text not null unique default encode(gen_random_bytes(16), 'hex'),
+  token       text not null unique default replace(gen_random_uuid()::text || gen_random_uuid()::text, '-', ''),
   created_by  uuid references public.profiles on delete cascade not null,
   max_uses    int,   -- null = unlimited
   use_count   int not null default 0,

@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { LoginButtons } from '@/components/auth/LoginButtons';
+import { DevLoginPanel } from '@/components/auth/DevLoginPanel';
 
 export default async function LandingPage({
   searchParams,
@@ -33,6 +34,7 @@ export default async function LandingPage({
         )}
 
         <LoginButtons next={next} />
+        {process.env.NODE_ENV === 'development' && <DevLoginPanel />}
       </div>
     </div>
   );

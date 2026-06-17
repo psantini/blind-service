@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { Nav } from '@/components/ui/Nav';
 import { Leaderboard } from '@/components/leaderboard/Leaderboard';
+import { SampleBreakdown } from '@/components/leaderboard/SampleBreakdown';
 
 export default async function LeaderboardPage({
   params,
@@ -37,25 +38,23 @@ export default async function LeaderboardPage({
   const samples = (blind.samples as any[]).sort((a, b) => a.display_order - b.display_order);
   const sampleIds = samples.map((s: any) => s.id);
 
-  // Get all questions for these samples
   const { data: attributeRows } = sampleIds.length > 0
-    ? await supabase.from('attributes').select('id').in('sample_id', sampleIds)
+    ? await supabase.from('attributes').select('id, name, value, sample_id').in('sample_id', sampleIds)
     : { data: [] };
 
   const attrIds = attributeRows?.map((a: any) => a.id) ?? [];
 
   const { data: questionRows } = attrIds.length > 0
-    ? await supabase.from('questions').select('id, round').in('attribute_id', attrIds)
+    ? await supabase.from('questions').select('id, round, attribute_id').in('attribute_id', attrIds)
     : { data: [] };
 
   const questionIds = questionRows?.map((q: any) => q.id) ?? [];
 
-  // Get all submitted answers with profiles
   const { data: answers } = questionIds.length > 0
     ? await supabase
         .from('answers')
         .select(`
-          id, user_id, question_id, points_earned, fuzzy_flagged, host_approved,
+          id, user_id, question_id, value, points_earned, fuzzy_flagged, host_approved,
           profile:profiles!user_id ( id, discord_username, discord_avatar_url )
         `)
         .in('question_id', questionIds)
@@ -77,13 +76,7 @@ export default async function LeaderboardPage({
 
   for (const answer of (answers ?? []) as any[]) {
     if (!scoreMap[answer.user_id]) {
-      scoreMap[answer.user_id] = {
-        profile: answer.profile,
-        total: 0,
-        nose: 0,
-        taste: 0,
-        pending: 0,
-      };
+      scoreMap[answer.user_id] = { profile: answer.profile, total: 0, nose: 0, taste: 0, pending: 0 };
     }
     const pts = answer.points_earned ?? 0;
     const round = questionRoundMap[answer.question_id];
@@ -98,17 +91,58 @@ export default async function LeaderboardPage({
 
   const ranked = Object.values(scoreMap).sort((a, b) => b.total - a.total);
 
+  // Build sample breakdown data
+  const attrMap = Object.fromEntries((attributeRows ?? []).map((a: any) => [a.id, a]));
+  const questionAttrMap = Object.fromEntries((questionRows ?? []).map((q: any) => [q.id, q.attribute_id]));
+
+  const sampleBreakdowns = samples.map((s: any) => {
+    const sampleAttrs = (attributeRows ?? []).filter((a: any) => a.sample_id === s.id);
+    const attributes = sampleAttrs.map((attr: any) => {
+      const q = (questionRows ?? []).find((q: any) => q.attribute_id === attr.id);
+      return {
+        questionId: q?.id ?? '',
+        attrId: attr.id,
+        name: attr.name,
+        correctValue: attr.value,
+        round: (q?.round ?? 'taste') as 'nose' | 'taste',
+      };
+    }).filter((a: any) => a.questionId);
+    return { id: s.id, label: s.label, attributes };
+  });
+
+  // answerMap[userId][questionId]
+  const answerMap: Record<string, Record<string, { value: string | null; points: number | null; fuzzyPending: boolean }>> = {};
+  for (const a of (answers ?? []) as any[]) {
+    if (!answerMap[a.user_id]) answerMap[a.user_id] = {};
+    answerMap[a.user_id][a.question_id] = {
+      value: a.value,
+      points: a.points_earned,
+      fuzzyPending: a.fuzzy_flagged && a.host_approved === null,
+    };
+  }
+
+  const players = ranked.map(r => ({ id: r.profile.id, discord_username: r.profile.discord_username }));
+
   return (
     <div className="min-h-screen">
       <Nav profile={profile} backHref={`/blinds/${blindId}`} backLabel="Lobby" />
-      <div className="max-w-3xl mx-auto px-4 py-8">
-        <h1 className="text-2xl font-display italic font-bold text-parchment mb-1">{(blind as any).name}</h1>
-        <p className="text-smoke text-sm mb-6">
-          {samples.length} samples · {(blind as any).nosing_enabled ? 'Nose + Taste' : 'Taste only'}
-        </p>
-        <Leaderboard
-          entries={ranked}
-          currentUserId={user.id}
+      <div className="max-w-3xl mx-auto px-4 py-8 space-y-8">
+        <div>
+          <h1 className="text-2xl font-display italic font-bold text-parchment mb-1">{(blind as any).name}</h1>
+          <p className="text-smoke text-sm mb-6">
+            {samples.length} samples · {(blind as any).nosing_enabled ? 'Nose + Taste' : 'Taste only'}
+          </p>
+          <Leaderboard
+            entries={ranked}
+            currentUserId={user.id}
+            nosingEnabled={(blind as any).nosing_enabled}
+          />
+        </div>
+
+        <SampleBreakdown
+          samples={sampleBreakdowns}
+          players={players}
+          answerMap={answerMap}
           nosingEnabled={(blind as any).nosing_enabled}
         />
       </div>

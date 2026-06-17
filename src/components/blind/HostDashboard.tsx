@@ -1,14 +1,14 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { reviewFuzzyAnswer, completeBlind } from '@/app/blinds/[blindId]/host/actions';
 import { FuzzyReviewPanel } from '@/components/scoring/FuzzyReviewPanel';
-import { SubmissionTracker } from './SubmissionTracker';
 import { Leaderboard } from '@/components/leaderboard/Leaderboard';
+import { SampleBreakdown } from '@/components/leaderboard/SampleBreakdown';
 import { BlindStatus } from '@/types';
 
 interface HostDashboardProps {
@@ -62,6 +62,19 @@ interface HostDashboardProps {
       } | null;
     } | null;
   }>;
+  sampleBreakdowns: Array<{
+    id: string;
+    label: string;
+    attributes: Array<{
+      questionId: string;
+      attrId: string;
+      name: string;
+      correctValue: string;
+      round: 'nose' | 'taste';
+    }>;
+  }>;
+  answerMap: Record<string, Record<string, { value: string | null; points: number | null; fuzzyPending: boolean }>>;
+  players: Array<{ id: string; discord_username: string }>;
   currentUserId: string;
 }
 
@@ -71,7 +84,7 @@ const STATUS_BADGE: Record<BlindStatus, { label: string; variant: 'green' | 'amb
   complete: { label: 'Complete',  variant: 'grey'  },
 };
 
-export function HostDashboard({ blind, fuzzyAnswers, allAnswers, ranked, currentUserId }: HostDashboardProps) {
+export function HostDashboard({ blind, fuzzyAnswers, allAnswers, ranked, currentUserId, sampleBreakdowns, answerMap, players }: HostDashboardProps) {
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
   const badge = STATUS_BADGE[blind.status];
@@ -82,10 +95,6 @@ export function HostDashboard({ blind, fuzzyAnswers, allAnswers, ranked, current
       s.sample_reveals.some(r => r.user_id === p.user_id)
     )
   ).length;
-
-  const shareUrl = typeof window !== 'undefined'
-    ? `${window.location.origin}/blinds/${blind.id}`
-    : `/blinds/${blind.id}`;
 
   function handleCopyLink() {
     if (typeof window !== 'undefined') {
@@ -152,29 +161,33 @@ export function HostDashboard({ blind, fuzzyAnswers, allAnswers, ranked, current
         ))}
       </div>
 
-      {/* Two-column content */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        {/* Submission tracker */}
-        <SubmissionTracker samples={samples} participants={participants} allAnswers={allAnswers} />
-
-        {/* Right column */}
-        <div className="space-y-4">
-          {/* Fuzzy review */}
+      {/* Fuzzy review */}
+      {fuzzyAnswers.length > 0 && (
+        <div className="mb-8">
           <FuzzyReviewPanel
             blindId={blind.id}
             answers={fuzzyAnswers}
           />
         </div>
-      </div>
+      )}
 
       {/* Live standings */}
-      <div>
-        <p className="text-xs font-semibold text-[#666] uppercase tracking-wider mb-3">
-          Live standings
-        </p>
-        <Leaderboard
-          entries={ranked}
-          currentUserId={currentUserId}
+      <div className="space-y-8">
+        <div>
+          <p className="text-xs font-semibold text-[#666] uppercase tracking-wider mb-3">
+            Live standings
+          </p>
+          <Leaderboard
+            entries={ranked}
+            currentUserId={currentUserId}
+            nosingEnabled={blind.nosing_enabled}
+          />
+        </div>
+
+        <SampleBreakdown
+          samples={sampleBreakdowns}
+          players={players}
+          answerMap={answerMap}
           nosingEnabled={blind.nosing_enabled}
         />
       </div>

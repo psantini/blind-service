@@ -13,6 +13,12 @@ jobs:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
         run: |
-          curl "$SUPABASE_URL/rest/v1/whiskey_types?select=id&limit=1" \
-            -H "apikey: $SUPABASE_ANON_KEY" \
-            -H "Authorization: Bearer $SUPABASE_ANON_KEY"
+          for i in 1 2 3; do
+            curl "$SUPABASE_URL/rest/v1/whiskey_types?select=id&limit=1" \
+              -H "apikey: $SUPABASE_ANON_KEY" \
+              -H "Authorization: Bearer $SUPABASE_ANON_KEY" \
+              && exit 0
+            echo "Attempt $i failed, retrying in 10s..."
+            sleep 10
+          done
+          exit 1

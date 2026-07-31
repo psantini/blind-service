@@ -1,6 +1,9 @@
 export const WHISKEY_TYPES = [
   'Bourbon',
   'Rye',
+  'Wheat Whiskey',
+  'Corn Whiskey',
+  'Blended Whiskey',
   'Scotch Single Malt',
   'Scotch Blended',
   'Scotch Single Grain',

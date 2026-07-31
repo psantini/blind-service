@@ -14,7 +14,7 @@ jobs:
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
         run: |
           for i in 1 2 3; do
-            curl "$SUPABASE_URL/rest/v1/whiskey_types?select=id&limit=1" \
+            curl "$SUPABASE_URL/rest/v1/profiles?select=id&limit=1" \
               -H "apikey: $SUPABASE_ANON_KEY" \
               -H "Authorization: Bearer $SUPABASE_ANON_KEY" \
               && exit 0

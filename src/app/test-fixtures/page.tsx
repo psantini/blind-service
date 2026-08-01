@@ -49,30 +49,30 @@ export default function TestFixturesPage() {
     },
   ];
 
-  const ANSWER_MAP: Record<string, Record<string, { value: string | null; points: number | null; fuzzyPending: boolean }>> = {
+  const ANSWER_MAP: Record<string, Record<string, { value: string | null; points: number | null; fuzzyPending: boolean; answerId: string; hostApproved: boolean | null }>> = {
     p1: {
-      q1: { value: "Maker's Mark", points: 3,    fuzzyPending: false },
-      q2: { value: '6',            points: 5,    fuzzyPending: false },
-      q3: { value: '96',           points: 3,    fuzzyPending: false },
-      q4: { value: 'sweet, oaky',  points: null, fuzzyPending: false },
-      q5: { value: 'Buffalo Trace',points: 3,    fuzzyPending: false },
-      q6: { value: '10',           points: 2,    fuzzyPending: false },
-      q7: { value: '90',           points: 5,    fuzzyPending: false },
+      q1: { value: "Maker's Mark", points: 3,    fuzzyPending: false, answerId: 'a1',  hostApproved: null },
+      q2: { value: '6',            points: 5,    fuzzyPending: false, answerId: 'a2',  hostApproved: null },
+      q3: { value: '96',           points: 3,    fuzzyPending: false, answerId: 'a3',  hostApproved: null },
+      q4: { value: 'sweet, oaky',  points: null, fuzzyPending: false, answerId: 'a4',  hostApproved: null },
+      q5: { value: 'Buffalo Trace',points: 3,    fuzzyPending: false, answerId: 'a5',  hostApproved: null },
+      q6: { value: '10',           points: 2,    fuzzyPending: false, answerId: 'a6',  hostApproved: null },
+      q7: { value: '90',           points: 5,    fuzzyPending: false, answerId: 'a7',  hostApproved: null },
     },
     p2: {
-      q1: { value: 'Wild Turkey',  points: 0,    fuzzyPending: false },
-      q2: { value: '8',            points: 3,    fuzzyPending: false },
-      q3: { value: '90',           points: 5,    fuzzyPending: false },
-      q4: { value: 'fruity',       points: null, fuzzyPending: false },
-      q5: { value: 'Evan Williams',points: 0,    fuzzyPending: false },
-      q6: { value: '8',            points: 5,    fuzzyPending: false },
-      q7: { value: '86',           points: 3,    fuzzyPending: false },
+      q1: { value: 'Wild Turkey',  points: 0,    fuzzyPending: false, answerId: 'a8',  hostApproved: null },
+      q2: { value: '8',            points: 3,    fuzzyPending: false, answerId: 'a9',  hostApproved: null },
+      q3: { value: '90',           points: 5,    fuzzyPending: false, answerId: 'a10', hostApproved: null },
+      q4: { value: 'fruity',       points: null, fuzzyPending: false, answerId: 'a11', hostApproved: null },
+      q5: { value: 'Evan Williams',points: 0,    fuzzyPending: false, answerId: 'a12', hostApproved: null },
+      q6: { value: '8',            points: 5,    fuzzyPending: false, answerId: 'a13', hostApproved: null },
+      q7: { value: '86',           points: 3,    fuzzyPending: false, answerId: 'a14', hostApproved: null },
     },
     p3: {
-      q1: { value: "Maker's Mar",  points: null, fuzzyPending: true  },
-      q2: { value: '10',           points: 1,    fuzzyPending: false },
-      q3: { value: null,           points: null, fuzzyPending: false },
-      q4: { value: '',             points: null, fuzzyPending: false },
+      q1: { value: "Maker's Mar",  points: null, fuzzyPending: true,  answerId: 'a15', hostApproved: null },
+      q2: { value: '10',           points: 1,    fuzzyPending: false, answerId: 'a16', hostApproved: null },
+      q3: { value: null,           points: null, fuzzyPending: false, answerId: 'a17', hostApproved: null },
+      q4: { value: '',             points: null, fuzzyPending: false, answerId: 'a18', hostApproved: null },
       // Sample B not submitted for p3
     },
   };

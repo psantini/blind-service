@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { Nav } from '@/components/ui/Nav';
 import { HostDashboard } from '@/components/blind/HostDashboard';
+import { overrideAnswer } from './actions';
 
 export default async function HostDashboardPage({
   params,
@@ -53,7 +54,7 @@ export default async function HostDashboardPage({
 
   // Fetch attributes and questions
   const { data: attributeRows } = sampleIds.length > 0
-    ? await supabase.from('attributes').select('id, name, value, sample_id').in('sample_id', sampleIds)
+    ? await supabase.from('attributes').select('id, name, value, scoring_type, sample_id').in('sample_id', sampleIds)
     : { data: [] };
 
   const attrIds = (attributeRows ?? []).map((a: any) => a.id);
@@ -69,7 +70,7 @@ export default async function HostDashboardPage({
     ? await supabase
         .from('answers')
         .select(`
-          user_id, question_id, points_earned, fuzzy_flagged, host_approved, value,
+          id, user_id, question_id, points_earned, fuzzy_flagged, host_approved, value,
           profile:profiles!user_id ( id, discord_username, discord_avatar_url ),
           question:questions!question_id (
             attribute:attributes!attribute_id ( name, value, sample_id )
@@ -136,19 +137,22 @@ export default async function HostDashboardPage({
         name: attr.name,
         correctValue: attr.value,
         round: (q?.round ?? 'taste') as 'nose' | 'taste',
+        scoringType: (attr.scoring_type ?? 'exact') as 'exact' | 'bracket' | 'none',
       };
     }).filter((a: any) => a.questionId);
     return { id: s.id, label: s.label, attributes };
   });
 
   // answerMap[userId][questionId]
-  const answerMap: Record<string, Record<string, { value: string | null; points: number | null; fuzzyPending: boolean }>> = {};
+  const answerMap: Record<string, Record<string, { answerId: string; value: string | null; points: number | null; fuzzyPending: boolean; hostApproved: boolean | null }>> = {};
   for (const a of (allAnswers ?? []) as any[]) {
     if (!answerMap[a.user_id]) answerMap[a.user_id] = {};
     answerMap[a.user_id][a.question_id] = {
+      answerId: a.id,
       value: a.value,
       points: a.points_earned,
       fuzzyPending: a.fuzzy_flagged && a.host_approved === null,
+      hostApproved: a.host_approved,
     };
   }
 
@@ -170,6 +174,10 @@ export default async function HostDashboardPage({
         sampleBreakdowns={sampleBreakdowns}
         answerMap={answerMap}
         players={players}
+        onOverride={async (answerId, approved) => {
+          'use server';
+          await overrideAnswer(blindId, answerId, approved);
+        }}
       />
     </div>
   );

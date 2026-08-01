@@ -71,11 +71,13 @@ interface HostDashboardProps {
       name: string;
       correctValue: string;
       round: 'nose' | 'taste';
+      scoringType: 'exact' | 'bracket' | 'none';
     }>;
   }>;
-  answerMap: Record<string, Record<string, { value: string | null; points: number | null; fuzzyPending: boolean }>>;
+  answerMap: Record<string, Record<string, { answerId: string; value: string | null; points: number | null; fuzzyPending: boolean; hostApproved: boolean | null }>>;
   players: Array<{ id: string; discord_username: string }>;
   currentUserId: string;
+  onOverride: (answerId: string, approved: boolean) => Promise<void>;
 }
 
 const STATUS_BADGE: Record<BlindStatus, { label: string; variant: 'green' | 'amber' | 'grey' }> = {
@@ -84,7 +86,7 @@ const STATUS_BADGE: Record<BlindStatus, { label: string; variant: 'green' | 'amb
   complete: { label: 'Complete',  variant: 'grey'  },
 };
 
-export function HostDashboard({ blind, fuzzyAnswers, allAnswers, ranked, currentUserId, sampleBreakdowns, answerMap, players }: HostDashboardProps) {
+export function HostDashboard({ blind, fuzzyAnswers, allAnswers, ranked, currentUserId, sampleBreakdowns, answerMap, players, onOverride }: HostDashboardProps) {
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
   const badge = STATUS_BADGE[blind.status];
@@ -189,6 +191,7 @@ export function HostDashboard({ blind, fuzzyAnswers, allAnswers, ranked, current
           players={players}
           answerMap={answerMap}
           nosingEnabled={blind.nosing_enabled}
+          onOverride={onOverride}
         />
       </div>
     </div>

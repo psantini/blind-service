@@ -1,9 +1,9 @@
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { redirect } from 'next/navigation';
-import Link from 'next/link';
 import { Nav } from '@/components/ui/Nav';
 import { AdventInviteLink } from '@/components/advent/AdventInviteLink';
+import { AdventActivateButton } from '@/components/advent/AdventActivateButton';
 
 export default async function AdventDashboardPage({
   params,
@@ -138,12 +138,7 @@ export default async function AdventDashboardPage({
         </div>
 
         <div className="flex justify-end">
-          <Link
-            href={`/blinds/${advent.blind_id}/host/setup`}
-            className="inline-flex items-center bg-amber text-black font-semibold text-sm px-5 py-2.5 rounded-lg hover:bg-amber/90 transition-colors"
-          >
-            Set up &amp; activate blind →
-          </Link>
+          <AdventActivateButton blindId={advent.blind_id} />
         </div>
       </div>
     </div>

@@ -102,36 +102,28 @@ export default async function AdventDashboardPage({
   // ── Host setup: show letter→day mapping + link to blind setup ──────────────
   const { data: assignments } = await adminClient
     .from('advent_assignments')
-    .select('letter, day, profile:profiles!contributor_user_id(discord_username)')
+    .select('letter, day')
     .eq('advent_calendar_id', adventId)
     .order('day');
 
-  const assignmentRows = (assignments ?? []) as unknown as Array<{
-    letter: string;
-    day: number | null;
-    profile: { discord_username: string } | null;
-  }>;
+  const assignmentRows = (assignments ?? []) as Array<{ letter: string; day: number }>;
 
   return (
     <div className="min-h-screen">
       <Nav profile={profile} backHref="/dashboard" backLabel="Dashboard" />
-      <div className="max-w-2xl mx-auto px-4 py-8 space-y-8">
+      <div className="max-w-md mx-auto px-4 py-8 space-y-8">
         <div>
           <h1 className="text-2xl font-display italic font-bold text-parchment mb-1">{blind.name}</h1>
-          <p className="text-smoke text-sm">
-            All bottles submitted. Review the day assignments below, then head to the blind setup to add any bonus samples and activate.
-          </p>
+          <p className="text-smoke text-sm">All bottles submitted. Open each bottle on the assigned day.</p>
         </div>
 
-        <div className="bg-cream rounded-xl p-6 space-y-4" style={{ border: '0.5px solid #E5DDD0' }}>
-          <p className="text-xs font-semibold text-[#666] uppercase tracking-wider">Day assignments</p>
-          <div className="grid grid-cols-2 gap-x-6">
+        <div className="bg-cream rounded-xl p-6" style={{ border: '0.5px solid #E5DDD0' }}>
+          <p className="text-xs font-semibold text-[#666] uppercase tracking-wider mb-4">Day assignments</p>
+          <div className="grid grid-cols-2 gap-x-8">
             {assignmentRows.map(a => (
-              <div key={a.letter} className="flex items-center gap-3 py-2 border-b border-[#E5DDD0]">
-                <span className="text-base font-display font-bold text-[#0D0D0D] w-5 shrink-0">{a.letter}</span>
-                <span className="text-xs text-[#999]">→</span>
+              <div key={a.day} className="flex items-center justify-between py-2 border-b border-[#E5DDD0]">
                 <span className="text-sm text-[#0D0D0D]">Day {a.day}</span>
-                <span className="text-xs text-[#999] ml-auto truncate">{a.profile?.discord_username}</span>
+                <span className="text-base font-display font-bold text-[#0D0D0D]">Bottle {a.letter}</span>
               </div>
             ))}
           </div>

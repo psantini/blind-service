@@ -181,6 +181,20 @@ export default async function TastingPage({
         .in('question_id', questionIds)
     : { data: [] };
 
+  const hasWhoQuestion = allValidQuestions.some(
+    (q: any) => q.attribute?.name === 'who submitted this'
+  );
+  const { data: memberRows } = hasWhoQuestion
+    ? await supabase
+        .from('blind_members')
+        .select('profile:profiles!user_id(discord_username)')
+        .eq('blind_id', blindId)
+    : { data: [] };
+  const participants = (memberRows ?? [])
+    .map((m: any) => m.profile?.discord_username as string)
+    .filter(Boolean)
+    .sort();
+
   const currentIdx = sortedSamples.findIndex(s => s.id === sampleId);
   const nextSample = sortedSamples[currentIdx + 1] ?? null;
 
@@ -223,6 +237,7 @@ export default async function TastingPage({
           existingAnswers={existingAnswers as any ?? []}
           phase={phase}
           nextSampleLabel={nextSample?.label}
+          participants={participants}
         />
       </div>
     </div>

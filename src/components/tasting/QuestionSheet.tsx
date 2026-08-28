@@ -37,6 +37,7 @@ interface QuestionSheetProps {
   existingAnswers: ExistingAnswer[];
   phase: 'nose' | 'taste';
   nextSampleLabel?: string;
+  participants?: string[];
 }
 
 export function QuestionSheet({
@@ -47,6 +48,7 @@ export function QuestionSheet({
   existingAnswers,
   phase,
   nextSampleLabel,
+  participants = [],
 }: QuestionSheetProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -162,7 +164,11 @@ export function QuestionSheet({
             ) : attr.input_type === 'dropdown' ? (
               <DropdownQuestion
                 value={value}
-                options={WHISKEY_TYPES.map(t => ({ value: t, label: t }))}
+                options={
+                  attr.name === 'who submitted this' && participants.length > 0
+                    ? participants.map(p => ({ value: p, label: p }))
+                    : WHISKEY_TYPES.map(t => ({ value: t, label: t }))
+                }
                 onChange={v => handleChange(q.id, v)}
               />
             ) : attr.input_type === 'numeric' ? (

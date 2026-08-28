@@ -171,6 +171,13 @@ export function QuestionSheet({
                 onChange={v => handleChange(q.id, v)}
                 placeholder="0"
               />
+            ) : attr.input_type === 'textarea' ? (
+              <FreeTextQuestion
+                value={value}
+                onChange={v => handleChange(q.id, v)}
+                placeholder="Your thoughts…"
+                multiline
+              />
             ) : (
               <FreeTextQuestion
                 value={value}

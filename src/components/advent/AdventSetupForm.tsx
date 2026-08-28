@@ -85,6 +85,15 @@ export function AdventSetupForm({ groups }: { groups: Group[] }) {
   const selectedUserIds = new Set(manifest.map(r => r.userId).filter(Boolean));
   const total = manifest.reduce((sum, r) => sum + r.bottlesExpected, 0);
   const canSubmit = !!name.trim() && !!groupId && total === 24 && manifest.every(r => r.userId) && !isPending;
+  const disabledReason = !name.trim()
+    ? 'Enter a calendar name'
+    : !groupId
+    ? 'Select a group'
+    : !manifest.every(r => r.userId)
+    ? 'All contributors must be selected'
+    : total !== 24
+    ? `Bottle total must equal 24 (currently ${total})`
+    : null;
 
   // ── Manifest handlers ──────────────────────────────────────────────────────
 
@@ -336,9 +345,11 @@ export function AdventSetupForm({ groups }: { groups: Group[] }) {
       {error && <p className="text-sm text-red-400">{error}</p>}
 
       <div className="flex justify-end">
-        <Button onClick={handleSubmit} disabled={!canSubmit}>
-          {isPending ? 'Creating...' : 'Create calendar →'}
-        </Button>
+        <span title={disabledReason ?? undefined} className={!canSubmit ? 'cursor-not-allowed' : undefined}>
+          <Button onClick={handleSubmit} disabled={!canSubmit} className={!canSubmit ? 'pointer-events-none' : undefined}>
+            {isPending ? 'Creating...' : 'Create calendar →'}
+          </Button>
+        </span>
       </div>
 
     </div>

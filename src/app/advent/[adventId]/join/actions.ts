@@ -103,13 +103,15 @@ export async function submitContributorBottles(params: {
       await adminClient.from('questions').insert({ attribute_id: attr.id, round: 'taste' });
     }
 
-    await adminClient.from('advent_assignments').insert({
+    const { error: assignmentError } = await adminClient.from('advent_assignments').insert({
       advent_calendar_id: adventId,
       sample_id: sample.id,
       contributor_user_id: user.id,
       letter,
       day: null,
     });
+
+    if (assignmentError) throw assignmentError;
 
     assignments.push({ letter, photoUrl: bottle.photoUrl });
   }

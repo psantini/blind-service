@@ -45,7 +45,7 @@ function Avatar({ username, url }: { username: string; url: string | null }) {
   );
 }
 
-export function BlindCard({ blind, currentUserId }: BlindCardProps) {
+export function BlindCard({ blind, currentUserId, adventId }: BlindCardProps & { adventId?: string }) {
   const currentMember = blind.blind_members.find(m => m.user_id === currentUserId);
   const isHost = currentMember?.role === 'host';
   const badge = STATUS_BADGE[blind.status];
@@ -55,8 +55,12 @@ export function BlindCard({ blind, currentUserId }: BlindCardProps) {
   const overflowCount = blind.blind_members.length - 4;
   const group = blind.group ?? null;
 
+  const href = adventId && blind.status === 'setup'
+    ? `/advent/${adventId}`
+    : `/blinds/${blind.id}`;
+
   return (
-    <Link href={`/blinds/${blind.id}`} className="block">
+    <Link href={href} className="block">
       <div className="bg-cream rounded-xl px-5 py-4 hover:border-[#C9B99A] transition-colors" style={{ border: '0.5px solid #E5DDD0' }}>
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1 min-w-0">

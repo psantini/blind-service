@@ -65,6 +65,18 @@ export default async function DashboardPage() {
   const hostedBlinds = (myBlinds ?? []).filter(b => hostedIds.has(b.id));
   const joinedBlinds = (myBlinds ?? []).filter(b => joinedIds.has(b.id));
 
+  // Map blind_id → advent_calendar id for setup-phase advent blinds the user hosts
+  const hostedSetupIds = hostedBlinds.filter(b => b.status === 'setup').map(b => b.id);
+  const { data: adventRows } = hostedSetupIds.length > 0
+    ? await adminClient
+        .from('advent_calendars')
+        .select('id, blind_id')
+        .in('blind_id', hostedSetupIds)
+    : { data: [] };
+  const adventByBlindId = Object.fromEntries(
+    (adventRows ?? []).map((a: any) => [a.blind_id, a.id])
+  );
+
   // Public blinds: all active/setup blinds the user hasn't joined
   const { data: publicBlinds } = await supabase
     .from('blinds')
@@ -101,7 +113,7 @@ export default async function DashboardPage() {
           ) : (
             <div className="flex flex-col gap-3">
               {hostedBlinds.map(blind => (
-                <BlindCard key={blind.id} blind={blind as any} currentUserId={user.id} />
+                <BlindCard key={blind.id} blind={blind as any} currentUserId={user.id} adventId={adventByBlindId[blind.id]} />
               ))}
             </div>
           )}

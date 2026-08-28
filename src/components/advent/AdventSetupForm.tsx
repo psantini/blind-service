@@ -232,10 +232,13 @@ export function AdventSetupForm({ groups }: { groups: Group[] }) {
         <div>
           <p className="text-xs font-semibold text-[#666] uppercase tracking-wider mb-1">Attribute questions</p>
           <p className="text-xs text-[#999]">
-            Contributors will answer these for each bottle they submit. Two questions are added automatically and cannot be removed:{' '}
-            <span className="font-medium text-[#666]">Rating (0–10)</span> and{' '}
-            <span className="font-medium text-[#666]">Thoughts (free text)</span>.
+            Contributors will answer these for each bottle they submit. Three questions are added automatically and cannot be removed:
           </p>
+          <ul className="text-xs text-[#666] list-disc list-inside space-y-0.5 mt-1">
+            <li><span className="font-medium">Who submitted this</span> — dropdown of all participants, 1 point for correct guess</li>
+            <li><span className="font-medium">Rating</span> — numeric, 0–10</li>
+            <li><span className="font-medium">Thoughts</span> — free text</li>
+          </ul>
         </div>
 
         <div className="space-y-3">

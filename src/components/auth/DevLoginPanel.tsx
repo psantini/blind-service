@@ -11,7 +11,7 @@ const DEV_USERS = [
   { label: 'dev_player3', email: 'player3@dev.test' },
 ];
 
-export function DevLoginPanel() {
+export function DevLoginPanel({ redirectTo = '/dashboard' }: { redirectTo?: string } = {}) {
   const [loading, setLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
@@ -25,7 +25,7 @@ export function DevLoginPanel() {
       setError(error.message);
       setLoading(null);
     } else {
-      router.push('/dashboard');
+      router.push(redirectTo);
     }
   }
 

@@ -3,6 +3,7 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { redirect } from 'next/navigation';
 import { Nav } from '@/components/ui/Nav';
 import { DiscordLoginButton } from '@/components/auth/DiscordLoginButton';
+import { DevLoginPanel } from '@/components/auth/DevLoginPanel';
 import { ContributorSubmissionForm } from '@/components/advent/ContributorSubmissionForm';
 
 export default async function AdventJoinPage({
@@ -41,6 +42,9 @@ export default async function AdventJoinPage({
           <div className="flex justify-center pt-2">
             <DiscordLoginButton next={`/advent/${adventId}/join`} />
           </div>
+          {process.env.NODE_ENV === 'development' && (
+            <DevLoginPanel redirectTo={`/advent/${adventId}/join`} />
+          )}
         </div>
       </div>
     );

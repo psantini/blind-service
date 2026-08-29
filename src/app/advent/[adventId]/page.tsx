@@ -3,7 +3,7 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { redirect } from 'next/navigation';
 import { Nav } from '@/components/ui/Nav';
 import { AdventInviteLink } from '@/components/advent/AdventInviteLink';
-import { AdventActivateButton } from '@/components/advent/AdventActivateButton';
+import { SampleSetupForm } from '@/components/blind/SampleSetupForm';
 
 export default async function AdventDashboardPage({
   params,
@@ -27,7 +27,7 @@ export default async function AdventDashboardPage({
 
   const { data: blind } = await adminClient
     .from('blinds')
-    .select('id, name, host_id')
+    .select('id, name, host_id, nosing_enabled')
     .eq('id', advent.blind_id)
     .single();
 
@@ -99,19 +99,32 @@ export default async function AdventDashboardPage({
     );
   }
 
-  // ── Host setup: show letter→day mapping + link to blind setup ──────────────
+  // ── Host setup: day→letter mapping + bonus sample editor ──────────────────
   const { data: assignments } = await adminClient
     .from('advent_assignments')
-    .select('letter, day')
+    .select('letter, day, sample_id')
     .eq('advent_calendar_id', adventId)
     .order('day');
 
-  const assignmentRows = (assignments ?? []) as Array<{ letter: string; day: number }>;
+  const assignmentRows = (assignments ?? []) as Array<{ letter: string; day: number; sample_id: string }>;
+  const adventSampleIds = new Set(assignmentRows.map(a => a.sample_id));
+
+  // Fetch all samples for this blind, then keep only ones the host added (not from contributors)
+  const { data: allSamples } = await adminClient
+    .from('samples')
+    .select(`
+      id, label, display_order, bottle_image_url,
+      attributes ( id, name, value, input_type, scoring_type, brackets, questions ( id, round ) )
+    `)
+    .eq('blind_id', advent.blind_id)
+    .order('display_order');
+
+  const bonusSamples = (allSamples ?? []).filter((s: any) => !adventSampleIds.has(s.id));
 
   return (
     <div className="min-h-screen">
       <Nav profile={profile} backHref="/dashboard" backLabel="Dashboard" />
-      <div className="max-w-md mx-auto px-4 py-8 space-y-8">
+      <div className="max-w-2xl mx-auto px-4 py-8 space-y-8">
         <div>
           <h1 className="text-2xl font-display italic font-bold text-parchment mb-1">{blind.name}</h1>
           <p className="text-smoke text-sm">All bottles submitted. Open each bottle on the assigned day.</p>
@@ -133,8 +146,15 @@ export default async function AdventDashboardPage({
           </div>
         </div>
 
-        <div className="flex justify-end">
-          <AdventActivateButton blindId={advent.blind_id} />
+        <div>
+          <p className="text-xs font-semibold text-[#666] uppercase tracking-wider mb-1">Bonus samples</p>
+          <p className="text-xs text-[#999] mb-6">Add any extra samples (e.g. day 25). When you&apos;re ready, activate the blind below.</p>
+          <SampleSetupForm
+            blindId={advent.blind_id}
+            nosingEnabled={blind.nosing_enabled ?? false}
+            blindStatus="setup"
+            initialSamples={bonusSamples as any}
+          />
         </div>
       </div>
     </div>

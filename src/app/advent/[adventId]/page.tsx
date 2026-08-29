@@ -120,10 +120,14 @@ export default async function AdventDashboardPage({
         <div className="bg-cream rounded-xl p-6" style={{ border: '0.5px solid #E5DDD0' }}>
           <p className="text-xs font-semibold text-[#666] uppercase tracking-wider mb-4">Day assignments</p>
           <div className="grid grid-cols-2 gap-x-8">
-            {assignmentRows.map(a => (
-              <div key={a.day} className="flex items-center justify-between py-2 border-b border-[#E5DDD0]">
-                <span className="text-sm text-[#0D0D0D]">Day {a.day}</span>
-                <span className="text-base font-display font-bold text-[#0D0D0D]">Bottle {a.letter}</span>
+            {[assignmentRows.slice(0, 12), assignmentRows.slice(12)].map((col, ci) => (
+              <div key={ci}>
+                {col.map(a => (
+                  <div key={a.day} className="flex items-center justify-between py-2 border-b border-[#E5DDD0]">
+                    <span className="text-sm text-[#0D0D0D]">Day {a.day}</span>
+                    <span className="text-base font-display font-bold text-[#0D0D0D]">Bottle {a.letter}</span>
+                  </div>
+                ))}
               </div>
             ))}
           </div>

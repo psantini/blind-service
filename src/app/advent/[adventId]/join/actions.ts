@@ -172,7 +172,7 @@ async function generateAdventBlind(adventId: string) {
 
     await adminClient
       .from('samples')
-      .update({ display_order: day, label: String(day) })
+      .update({ display_order: day, label: `Day ${day}` })
       .eq('id', assignment.sample_id);
 
     // Auto-create "who submitted this" attribute + question

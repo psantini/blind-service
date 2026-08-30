@@ -177,7 +177,7 @@ async function main() {
     const username = a.profile?.discord_username ?? 'unknown';
 
     await db.from('advent_assignments').update({ day }).eq('id', a.id);
-    await db.from('samples').update({ display_order: day, label: String(day) }).eq('id', a.sample_id);
+    await db.from('samples').update({ display_order: day, label: `Day ${day}` }).eq('id', a.sample_id);
 
     const { data: whoAttr } = await db.from('attributes').insert({
       sample_id: a.sample_id, name: 'who submitted this', value: username,

@@ -153,6 +153,7 @@ export default async function AdventDashboardPage({
             blindId={advent.blind_id}
             nosingEnabled={blind.nosing_enabled ?? false}
             blindStatus="setup"
+            bonusMode
             initialSamples={bonusSamples as any}
           />
         </div>

@@ -78,10 +78,15 @@ function sampleLabel(index: number): string {
   return String.fromCharCode(65 + index); // A, B, C...
 }
 
+function bonusSampleLabel(index: number): string {
+  return `Day 25-${index + 1}`;
+}
+
 interface SampleSetupFormProps {
   blindId: string;
   nosingEnabled: boolean;
   blindStatus: BlindStatus;
+  bonusMode?: boolean;
   initialSamples: Array<{
     id: string;
     label: string;
@@ -103,6 +108,7 @@ export function SampleSetupForm({
   blindId,
   nosingEnabled,
   blindStatus,
+  bonusMode = false,
   initialSamples,
 }: SampleSetupFormProps) {
   const [isPending, startTransition] = useTransition();
@@ -145,6 +151,7 @@ export function SampleSetupForm({
         };
       });
     }
+    if (bonusMode) return [];
     return [{
       id: null,
       label: 'A',
@@ -160,8 +167,8 @@ export function SampleSetupForm({
       ...prev,
       {
         id: null,
-        label: sampleLabel(prev.length),
-        displayOrder: prev.length,
+        label: bonusMode ? bonusSampleLabel(prev.length) : sampleLabel(prev.length),
+        displayOrder: bonusMode ? 25 + prev.length : prev.length,
         bottleImageUrl: null,
         attributes: buildDefaultAttributes(),
         isExpanded: true,
@@ -197,7 +204,11 @@ export function SampleSetupForm({
     }
     setSamples(prev => {
       const next = prev.filter((_, i) => i !== index);
-      return next.map((s, i) => ({ ...s, label: sampleLabel(i), displayOrder: i }));
+      return next.map((s, i) => ({
+        ...s,
+        label: bonusMode ? bonusSampleLabel(i) : sampleLabel(i),
+        displayOrder: bonusMode ? 25 + i : i,
+      }));
     });
   }
 
@@ -239,7 +250,7 @@ export function SampleSetupForm({
                   nosingEnabled={nosingEnabled}
                   onChange={(data) => updateSample(index, data)}
                   onSave={() => handleSaveSample(index)}
-                  onDelete={samples.length > 1 ? () => handleDeleteSample(index) : undefined}
+                  onDelete={bonusMode || samples.length > 1 ? () => handleDeleteSample(index) : undefined}
                   isSaving={isPending}
                 />
               </div>

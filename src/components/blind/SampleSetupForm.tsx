@@ -212,6 +212,21 @@ export function SampleSetupForm({
     });
   }
 
+  function handleSaveAll() {
+    startTransition(async () => {
+      for (let i = 0; i < samples.length; i++) {
+        const sample = samples[i]!;
+        const id = await saveSample(blindId, sample.id, {
+          label: sample.label,
+          displayOrder: sample.displayOrder,
+          bottleImageUrl: sample.bottleImageUrl,
+          attributes: sample.attributes,
+        });
+        setSamples(prev => prev.map((s, j) => j === i ? { ...s, id } : s));
+      }
+    });
+  }
+
   function handleActivate() {
     startTransition(async () => {
       const result = await activateBlind(blindId);
@@ -268,7 +283,7 @@ export function SampleSetupForm({
       </button>
 
       <div className="flex justify-between items-center">
-        <Button variant="secondary" onClick={() => handleSaveSample(samples.length - 1)} disabled={isPending}>
+        <Button variant="secondary" onClick={handleSaveAll} disabled={isPending}>
           Save draft
         </Button>
         <Button onClick={handleActivate} disabled={isPending || blindStatus === 'active'}>

@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 import { Nav } from '@/components/ui/Nav';
 import { AdventInviteLink } from '@/components/advent/AdventInviteLink';
 import { SampleSetupForm } from '@/components/blind/SampleSetupForm';
+import { BlindStatus } from '@/types';
 
 export default async function AdventDashboardPage({
   params,
@@ -27,13 +28,15 @@ export default async function AdventDashboardPage({
 
   const { data: blind } = await adminClient
     .from('blinds')
-    .select('id, name, host_id, nosing_enabled')
+    .select('id, name, host_id, nosing_enabled, status')
     .eq('id', advent.blind_id)
     .single();
 
   if (!blind || blind.host_id !== user.id) redirect('/dashboard');
 
-  if (advent.status === 'complete') redirect(`/blinds/${advent.blind_id}`);
+  if (advent.status === 'complete' || blind.status === 'active' || blind.status === 'complete') {
+    redirect(`/blinds/${advent.blind_id}`);
+  }
 
   const { data: profile } = await supabase
     .from('profiles')
@@ -152,7 +155,7 @@ export default async function AdventDashboardPage({
           <SampleSetupForm
             blindId={advent.blind_id}
             nosingEnabled={blind.nosing_enabled ?? false}
-            blindStatus="setup"
+            blindStatus={blind.status as BlindStatus}
             bonusMode
             initialSamples={bonusSamples as any}
           />

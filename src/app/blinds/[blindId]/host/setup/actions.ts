@@ -160,6 +160,14 @@ export async function saveSample(
   }
 
   revalidatePath(`/blinds/${blindId}/host/setup`);
+
+  const { data: adventRow } = await supabase
+    .from('advent_calendars')
+    .select('id')
+    .eq('blind_id', blindId)
+    .maybeSingle();
+  if (adventRow) revalidatePath(`/advent/${adventRow.id}`);
+
   return sampleId;
 }
 
@@ -178,6 +186,12 @@ export async function activateBlind(blindId: string): Promise<{ redirectTo: stri
     .from('blinds')
     .update({ status: 'active' })
     .eq('id', blindId);
+
+  // No-op for regular blinds; marks the advent calendar complete if one exists
+  await supabase
+    .from('advent_calendars')
+    .update({ status: 'complete' })
+    .eq('blind_id', blindId);
 
   return { redirectTo: `/blinds/${blindId}/host` };
 }

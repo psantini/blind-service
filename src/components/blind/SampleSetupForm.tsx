@@ -112,6 +112,7 @@ export function SampleSetupForm({
   initialSamples,
 }: SampleSetupFormProps) {
   const [isPending, startTransition] = useTransition();
+  const [saveError, setSaveError] = useState<string | null>(null);
   const router = useRouter();
 
   const [samples, setSamples] = useState<SampleData[]>(() => {
@@ -213,16 +214,21 @@ export function SampleSetupForm({
   }
 
   function handleSaveAll() {
+    setSaveError(null);
     startTransition(async () => {
-      for (let i = 0; i < samples.length; i++) {
-        const sample = samples[i]!;
-        const id = await saveSample(blindId, sample.id, {
-          label: sample.label,
-          displayOrder: sample.displayOrder,
-          bottleImageUrl: sample.bottleImageUrl,
-          attributes: sample.attributes,
-        });
-        setSamples(prev => prev.map((s, j) => j === i ? { ...s, id } : s));
+      try {
+        for (let i = 0; i < samples.length; i++) {
+          const sample = samples[i]!;
+          const id = await saveSample(blindId, sample.id, {
+            label: sample.label,
+            displayOrder: sample.displayOrder,
+            bottleImageUrl: sample.bottleImageUrl,
+            attributes: sample.attributes,
+          });
+          setSamples(prev => prev.map((s, j) => j === i ? { ...s, id } : s));
+        }
+      } catch (err: any) {
+        setSaveError(err?.message ?? 'Failed to save — please try again');
       }
     });
   }
@@ -282,6 +288,7 @@ export function SampleSetupForm({
         + Add sample
       </button>
 
+      {saveError && <p className="text-sm text-red-400 mb-3">{saveError}</p>}
       <div className="flex justify-between items-center">
         <Button variant="secondary" onClick={handleSaveAll} disabled={isPending}>
           Save draft

@@ -34,11 +34,11 @@ const FIXED_SCORING_TYPE = ['distillery', 'type', 'finished', 'finish_type', 'bo
 
 function buildDefaultTemplates(): AdventAttributeTemplate[] {
   return [
-    { name: 'distillery',   inputType: 'text',     scoringType: 'exact',   brackets: null },
     { name: 'type',         inputType: 'dropdown', scoringType: 'exact',   brackets: null },
-    { name: 'age',          inputType: 'numeric',  scoringType: 'bracket', brackets: DEFAULT_AGE_BRACKETS },
     { name: 'proof',        inputType: 'numeric',  scoringType: 'bracket', brackets: DEFAULT_PROOF_BRACKETS },
+    { name: 'age',          inputType: 'numeric',  scoringType: 'bracket', brackets: DEFAULT_AGE_BRACKETS },
     { name: 'finished',     inputType: 'boolean',  scoringType: 'exact',   brackets: null },
+    { name: 'distillery',   inputType: 'text',     scoringType: 'exact',   brackets: null },
     { name: 'bottle guess', inputType: 'text',     scoringType: 'exact',   brackets: [{ max_delta: 0, points: 5 }] },
   ];
 }

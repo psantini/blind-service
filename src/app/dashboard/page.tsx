@@ -6,6 +6,7 @@ import { Nav } from '@/components/ui/Nav';
 import { BlindCard } from '@/components/blind/BlindCard';
 import { Badge } from '@/components/ui/Badge';
 import { GroupBadge } from '@/components/ui/GroupBadge';
+import { NewBlindDropdown } from '@/components/ui/NewBlindDropdown';
 import { BlindStatus } from '@/types';
 
 const STATUS_BADGE: Record<BlindStatus, { label: string; variant: 'green' | 'amber' | 'grey' }> = {
@@ -97,12 +98,7 @@ export default async function DashboardPage() {
       <div className="max-w-3xl mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-2xl font-display italic font-bold text-parchment">Dashboard</h1>
-          <Link
-            href="/blinds/new"
-            className="bg-amber hover:bg-amber/80 text-black text-sm font-medium px-4 py-2 rounded-lg transition-colors"
-          >
-            + New blind
-          </Link>
+          <NewBlindDropdown showAdvent={isGroupManager} />
         </div>
 
         {/* Hosting */}

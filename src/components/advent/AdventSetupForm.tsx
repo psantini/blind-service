@@ -30,7 +30,7 @@ interface AdventAttributeTemplate {
   brackets: Array<{ max_delta: number; points: number }> | null;
 }
 
-const FIXED_SCORING_TYPE = ['distillery', 'type', 'finished', 'finish_type'];
+const FIXED_SCORING_TYPE = ['distillery', 'type', 'finished', 'finish_type', 'bottle guess'];
 
 function buildDefaultTemplates(): AdventAttributeTemplate[] {
   return [
@@ -253,7 +253,7 @@ export function AdventSetupForm({ groups }: { groups: Group[] }) {
 
         <div className="space-y-3">
           {templates.map((t, i) => {
-            const isStandard = ['distillery', 'type', 'age', 'proof', 'finished', 'finish_type'].includes(t.name);
+            const isStandard = ['distillery', 'type', 'age', 'proof', 'finished', 'finish_type', 'bottle guess'].includes(t.name);
             const fixedScoring = FIXED_SCORING_TYPE.includes(t.name);
             const maxPts = t.scoringType === 'bracket'
               ? Math.max(0, ...((t.brackets ?? []).map(b => b.points)))

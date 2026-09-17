@@ -34,11 +34,12 @@ const FIXED_SCORING_TYPE = ['distillery', 'type', 'finished', 'finish_type'];
 
 function buildDefaultTemplates(): AdventAttributeTemplate[] {
   return [
-    { name: 'distillery', inputType: 'text',     scoringType: 'exact',   brackets: null },
-    { name: 'type',       inputType: 'dropdown',  scoringType: 'exact',   brackets: null },
-    { name: 'age',        inputType: 'numeric',   scoringType: 'bracket', brackets: DEFAULT_AGE_BRACKETS },
-    { name: 'proof',      inputType: 'numeric',   scoringType: 'bracket', brackets: DEFAULT_PROOF_BRACKETS },
-    { name: 'finished',   inputType: 'boolean',   scoringType: 'exact',   brackets: null },
+    { name: 'distillery',   inputType: 'text',     scoringType: 'exact',   brackets: null },
+    { name: 'type',         inputType: 'dropdown', scoringType: 'exact',   brackets: null },
+    { name: 'age',          inputType: 'numeric',  scoringType: 'bracket', brackets: DEFAULT_AGE_BRACKETS },
+    { name: 'proof',        inputType: 'numeric',  scoringType: 'bracket', brackets: DEFAULT_PROOF_BRACKETS },
+    { name: 'finished',     inputType: 'boolean',  scoringType: 'exact',   brackets: null },
+    { name: 'bottle guess', inputType: 'text',     scoringType: 'exact',   brackets: [{ max_delta: 0, points: 5 }] },
   ];
 }
 
@@ -296,7 +297,7 @@ export function AdventSetupForm({ groups }: { groups: Group[] }) {
                       ))}
 
                       {/* Fuzzy badge */}
-                      {(t.name === 'distillery' || t.name === 'finish_type') && (
+                      {t.inputType === 'text' && t.scoringType === 'exact' && (
                         <Badge variant="amber">fuzzy</Badge>
                       )}
 

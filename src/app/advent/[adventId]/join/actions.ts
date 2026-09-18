@@ -57,6 +57,7 @@ export async function submitContributorBottles(params: {
     .select('letter')
     .eq('advent_calendar_id', adventId);
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const takenLetters = new Set((existingAssignments ?? []).map((a: any) => a.letter));
   const available = ALL_LETTERS.filter(l => !takenLetters.has(l));
   if (available.length < bottles.length) throw new Error('Not enough letters available — try again');
@@ -163,6 +164,7 @@ async function generateAdventBlind(adventId: string) {
   for (let i = 0; i < assignments.length; i++) {
     const assignment = assignments[i]!;
     const day = days[i]!;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const username = (assignment.profile as any)?.discord_username ?? 'unknown';
 
     await adminClient

@@ -2,9 +2,7 @@
 
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
-import { Badge } from '@/components/ui/Badge';
 import { SampleForm } from './SampleForm';
 import { saveSample, deleteSample, activateBlind } from '@/app/blinds/[blindId]/host/setup/actions';
 import { DEFAULT_AGE_BRACKETS, DEFAULT_PROOF_BRACKETS } from '@/lib/constants/defaultBrackets';
@@ -64,7 +62,7 @@ interface SampleSetupFormProps {
       value: string;
       input_type: string;
       scoring_type: string;
-      brackets: any;
+      brackets: Array<{ max_delta: number; points: number }> | null;
       questions: Array<{ id: string; round: string }>;
     }>;
   }>;
@@ -87,10 +85,10 @@ export function SampleSetupForm({
         const attrs: AttributeData[] = s.attributes.map(a => ({
           name: a.name,
           value: a.value,
-          inputType: a.input_type as any,
-          scoringType: a.scoring_type as any,
+          inputType: a.input_type as AttributeData['inputType'],
+          scoringType: a.scoring_type as AttributeData['scoringType'],
           brackets: a.brackets,
-          rounds: a.questions.length > 0 ? a.questions.map(q => q.round as any) : ['taste'],
+          rounds: a.questions.length > 0 ? a.questions.map(q => q.round as 'nose' | 'taste') : ['taste'],
         }));
 
         // Ensure finish_type is present if finished=yes
@@ -193,8 +191,8 @@ export function SampleSetupForm({
           });
           setSamples(prev => prev.map((s, j) => j === i ? { ...s, id } : s));
         }
-      } catch (err: any) {
-        setSaveError(err?.message ?? 'Failed to save — please try again');
+      } catch (err: unknown) {
+        setSaveError(err instanceof Error ? err.message : 'Failed to save — please try again');
       }
     });
   }

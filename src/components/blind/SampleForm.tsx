@@ -5,8 +5,8 @@ import { Input } from '@/components/ui/Input';
 import { Dropdown } from '@/components/ui/Dropdown';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
+import Image from 'next/image';
 import { WHISKEY_TYPES } from '@/lib/constants/whiskeyTypes';
-import { DEFAULT_AGE_BRACKETS, DEFAULT_PROOF_BRACKETS } from '@/lib/constants/defaultBrackets';
 import { SampleData, AttributeData } from './SampleSetupForm';
 import { createClient } from '@/lib/supabase/client';
 
@@ -191,8 +191,8 @@ export function SampleForm({ blindId, sample, nosingEnabled, onChange, onSave, o
                 .from('bottle-images')
                 .getPublicUrl(path);
               onChange({ bottleImageUrl: publicUrl });
-            } catch (err: any) {
-              setUploadError(err?.message ?? 'Upload failed');
+            } catch (err: unknown) {
+              setUploadError(err instanceof Error ? err.message : 'Upload failed');
             } finally {
               setIsUploading(false);
             }
@@ -201,9 +201,11 @@ export function SampleForm({ blindId, sample, nosingEnabled, onChange, onSave, o
         {isUploading && <p className="text-xs text-muted mt-1">Uploading...</p>}
         {uploadError && <p className="text-xs text-red-400 mt-1">{uploadError}</p>}
         {!isUploading && sample.bottleImageUrl && (
-          <img
+          <Image
             src={sample.bottleImageUrl}
             alt="Bottle"
+            width={200}
+            height={80}
             className="mt-2 h-20 w-auto rounded object-contain"
             style={{ border: '0.5px solid #E5DDD0' }}
           />

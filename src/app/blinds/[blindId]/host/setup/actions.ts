@@ -2,7 +2,6 @@
 
 import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
-import { DEFAULT_AGE_BRACKETS, DEFAULT_PROOF_BRACKETS } from '@/lib/constants/defaultBrackets';
 import { rescoreSample } from '@/lib/scoring';
 
 export interface AttributeInput {
@@ -46,6 +45,7 @@ export async function saveSample(
       .eq('sample_id', sampleId);
 
     const existingByName: Record<string, { id: string; questions: Array<{ id: string; round: string }> }> =
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       Object.fromEntries((existingAttrs ?? []).map((a: any) => [a.name, { id: a.id, questions: a.questions ?? [] }]));
 
     const newNames = new Set(data.attributes.map(a => a.name));

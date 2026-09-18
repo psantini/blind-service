@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { redirect } from 'next/navigation';
@@ -122,7 +123,7 @@ export default async function AdventDashboardPage({
     .eq('blind_id', advent.blind_id)
     .order('display_order');
 
-  const bonusSamples = (allSamples ?? []).filter((s: any) => !adventSampleIds.has(s.id));
+  const bonusSamples = (allSamples ?? []).filter((s: any) => !adventSampleIds.has(s.id)) as any;
 
   return (
     <div className="min-h-screen">
@@ -157,7 +158,7 @@ export default async function AdventDashboardPage({
             nosingEnabled={blind.nosing_enabled ?? false}
             blindStatus={blind.status as BlindStatus}
             bonusMode
-            initialSamples={bonusSamples as any}
+            initialSamples={bonusSamples}
           />
         </div>
       </div>

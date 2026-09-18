@@ -1,6 +1,8 @@
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { redirect } from 'next/navigation';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import Image from 'next/image';
 import { Nav } from '@/components/ui/Nav';
 import { DiscordLoginButton } from '@/components/auth/DiscordLoginButton';
 import { DevLoginPanel } from '@/components/auth/DevLoginPanel';
@@ -107,7 +109,7 @@ export default async function AdventJoinPage({
               <div key={a.letter} className="bg-cream rounded-xl p-4 flex items-center gap-5" style={{ border: '0.5px solid #E5DDD0' }}>
                 <span className="text-5xl font-display font-bold text-[#0D0D0D] w-12 text-center">{a.letter}</span>
                 {a.sample?.bottle_image_url && (
-                  <img src={a.sample.bottle_image_url} alt={`Bottle ${a.letter}`} className="h-28 w-auto rounded object-contain" style={{ border: '0.5px solid #E5DDD0' }} />
+                  <Image src={a.sample.bottle_image_url} alt={`Bottle ${a.letter}`} width={200} height={112} className="h-28 w-auto rounded object-contain" style={{ border: '0.5px solid #E5DDD0' }} />
                 )}
               </div>
             ))}
@@ -117,6 +119,8 @@ export default async function AdventJoinPage({
       </div>
     );
   }
+
+  const questionTemplates = advent.question_templates as any[];
 
   return (
     <div className="min-h-screen">
@@ -130,7 +134,7 @@ export default async function AdventJoinPage({
           adventId={adventId}
           blindId={advent.blind_id}
           bottlesExpected={manifestRow.bottles_expected}
-          questionTemplates={advent.question_templates as any[]}
+          questionTemplates={questionTemplates}
         />
       </div>
     </div>

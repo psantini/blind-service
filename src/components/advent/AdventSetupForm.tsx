@@ -144,8 +144,8 @@ export function AdventSetupForm({ groups }: { groups: Group[] }) {
       try {
         const result = await createAdventCalendar({ name: name.trim(), groupId, manifest, questionTemplates: templates });
         if (result?.redirectTo) window.location.href = result.redirectTo;
-      } catch (err: any) {
-        setError(err?.message ?? 'Something went wrong');
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : 'Something went wrong');
       }
     });
   }

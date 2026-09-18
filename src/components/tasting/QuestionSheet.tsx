@@ -18,7 +18,7 @@ interface Question {
     name: string;
     input_type: string;
     scoring_type: string;
-    brackets: any;
+    brackets: Array<{ max_delta: number; points: number }> | null;
   };
 }
 
@@ -65,7 +65,7 @@ export function QuestionSheet({
     }
     return init;
   });
-  const [answerIds, setAnswerIds] = useState<Record<string, string>>(() => {
+  const [answerIds] = useState<Record<string, string>>(() => {
     const init: Record<string, string> = {};
     existingAnswers.forEach(a => { init[a.question_id] = a.id; });
     return init;
@@ -132,7 +132,7 @@ export function QuestionSheet({
         const isScored = attr.scoring_type !== 'none';
         const maxPts = isScored
           ? attr.scoring_type === 'bracket'
-            ? Math.max(0, ...((attr.brackets ?? []).map((b: any) => b.points)))
+            ? Math.max(0, ...((attr.brackets ?? []).map(b => b.points)))
             : (attr.brackets?.[0]?.points ?? 3)
           : 0;
 

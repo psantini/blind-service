@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/Badge';
 import { GroupBadge } from '@/components/ui/GroupBadge';
@@ -31,9 +32,11 @@ const STATUS_BADGE: Record<BlindStatus, { label: string; variant: 'green' | 'amb
 function Avatar({ username, url }: { username: string; url: string | null }) {
   if (url) {
     return (
-      <img
+      <Image
         src={url}
         alt={username}
+        width={24}
+        height={24}
         className="w-6 h-6 rounded-full object-cover border border-[#E5DDD0]"
       />
     );

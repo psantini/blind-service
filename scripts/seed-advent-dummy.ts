@@ -8,6 +8,7 @@
  *   npx tsx scripts/seed-advent-dummy.ts <adventId>
  */
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { createClient } from '@supabase/supabase-js';
 
 const URL = process.env.NEXT_PUBLIC_SUPABASE_URL;

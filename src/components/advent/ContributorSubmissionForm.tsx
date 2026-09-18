@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { Dropdown } from '@/components/ui/Dropdown';
 import { WHISKEY_TYPES } from '@/lib/constants/whiskeyTypes';
 import { createClient } from '@/lib/supabase/client';
+import Image from 'next/image';
 import { submitContributorBottles } from '@/app/advent/[adventId]/join/actions';
 
 interface AdventAttributeTemplate {
@@ -84,14 +85,16 @@ export function ContributorSubmissionForm({
     setBottles(prev => prev.map((b, i) => i === bottleIdx ? { ...b, isUploading: true, uploadError: null } : b));
     try {
       const supabase = createClient();
+      // eslint-disable-next-line react-hooks/purity
       const path = `${blindId}/advent/${Date.now()}_${bottleIdx}.jpg`;
       const { error: uploadError } = await supabase.storage.from('bottle-images').upload(path, file, { upsert: true });
       if (uploadError) throw uploadError;
       const { data: { publicUrl } } = supabase.storage.from('bottle-images').getPublicUrl(path);
       setBottles(prev => prev.map((b, i) => i === bottleIdx ? { ...b, photoUrl: publicUrl, isUploading: false } : b));
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Upload failed';
       setBottles(prev => prev.map((b, i) => i === bottleIdx
-        ? { ...b, isUploading: false, uploadError: err?.message ?? 'Upload failed' }
+        ? { ...b, isUploading: false, uploadError: msg }
         : b
       ));
     }
@@ -151,8 +154,8 @@ export function ContributorSubmissionForm({
           })),
         });
         setAssignments(result.assignments);
-      } catch (err: any) {
-        setError(err?.message ?? 'Something went wrong');
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : 'Something went wrong');
       }
     });
   }
@@ -170,7 +173,7 @@ export function ContributorSubmissionForm({
             <div key={a.letter} className="bg-cream rounded-xl p-5 flex items-center gap-6" style={{ border: '0.5px solid #E5DDD0' }}>
               <span className="text-6xl font-display font-bold text-[#0D0D0D] w-14 text-center shrink-0">{a.letter}</span>
               {a.photoUrl && (
-                <img src={a.photoUrl} alt={`Bottle ${a.letter}`} className="h-32 w-auto rounded object-contain" style={{ border: '0.5px solid #E5DDD0' }} />
+                <Image src={a.photoUrl} alt={`Bottle ${a.letter}`} width={200} height={128} className="h-32 w-auto rounded object-contain" style={{ border: '0.5px solid #E5DDD0' }} />
               )}
             </div>
           ))}
@@ -205,7 +208,7 @@ export function ContributorSubmissionForm({
             {bottle.isUploading && <p className="text-xs text-[#999] mt-1">Uploading…</p>}
             {bottle.uploadError && <p className="text-xs text-red-400 mt-1">{bottle.uploadError}</p>}
             {bottle.photoUrl && !bottle.isUploading && (
-              <img src={bottle.photoUrl} alt="Bottle" className="mt-2 h-24 w-auto rounded object-contain" style={{ border: '0.5px solid #E5DDD0' }} />
+              <Image src={bottle.photoUrl} alt="Bottle" width={200} height={96} className="mt-2 h-24 w-auto rounded object-contain" style={{ border: '0.5px solid #E5DDD0' }} />
             )}
           </div>
 

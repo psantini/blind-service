@@ -15,8 +15,8 @@ export function AdventActivateButton({ blindId }: { blindId: string }) {
       try {
         const result = await activateBlind(blindId);
         router.push(result.redirectTo);
-      } catch (err: any) {
-        setError(err?.message ?? 'Something went wrong');
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : 'Something went wrong');
       }
     });
   }

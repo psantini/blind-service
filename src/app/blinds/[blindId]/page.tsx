@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { Nav } from '@/components/ui/Nav';
@@ -57,7 +58,13 @@ export default async function BlindLobbyPage({
   const currentMember = blind.blind_members.find((m: any) => m.user_id === user.id);
   const isHost = currentMember?.role === 'host';
 
-  if (isHost) redirect(`/blinds/${blindId}/host`);
+  // Advent blind hosts participate as normal tasters — don't redirect them to the host dashboard
+  const { data: adventRow } = isHost
+    ? await supabase.from('advent_calendars').select('id').eq('blind_id', blindId).maybeSingle()
+    : { data: null };
+  const isAdventBlind = !!adventRow;
+
+  if (isHost && !isAdventBlind) redirect(`/blinds/${blindId}/host`);
 
   if (currentMember && blind.status === 'complete') {
     redirect(`/blinds/${blindId}/leaderboard`);
@@ -92,6 +99,7 @@ export default async function BlindLobbyPage({
           blind={blind as any}
           currentUserId={user.id}
           isHost={isHost}
+          isAdventBlind={isAdventBlind}
           isMember={!!currentMember}
           firstSampleId={nextSampleId}
           revealedSampleIds={revealedIds}

@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
-import { ScoreBreakdown } from '@/components/scoring/ScoreBreakdown';
+import Image from 'next/image';
 
 interface Attribute {
   id: string;
@@ -137,10 +137,12 @@ export function RevealCard({
         <div className="flex gap-0">
           {sample.bottle_image_url && (
             <div className="w-40 shrink-0 bg-[#EDE7D5] flex items-center justify-center p-3" style={{ borderRight: '0.5px solid #E5DDD0' }}>
-              <img
+              <Image
                 src={sample.bottle_image_url}
                 alt="Bottle"
-                className="max-h-48 object-contain"
+                width={200}
+                height={192}
+                className="max-h-48 w-auto object-contain"
               />
             </div>
           )}

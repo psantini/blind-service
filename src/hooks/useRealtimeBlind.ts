@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
 import { useEffect } from 'react';
@@ -12,6 +13,8 @@ interface UseHostRealtimeOptions {
 }
 
 export function useHostRealtime({ blindId, sampleIds, onSubmission, onFuzzyFlag }: UseHostRealtimeOptions) {
+  const sampleIdsKey = sampleIds.join(',');
+
   useEffect(() => {
     const supabase = createClient();
 
@@ -55,7 +58,8 @@ export function useHostRealtime({ blindId, sampleIds, onSubmission, onFuzzyFlag 
       void supabase.removeChannel(broadcastChannel);
       void supabase.removeChannel(dbChannel);
     };
-  }, [blindId, sampleIds.join(',')]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [blindId, sampleIdsKey]);
 }
 
 interface UseParticipantRealtimeOptions {
@@ -103,5 +107,6 @@ export function useParticipantRealtime({
     return () => {
       void supabase.removeChannel(channel);
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [blindId, currentUserId]);
 }

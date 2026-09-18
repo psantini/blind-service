@@ -2,9 +2,7 @@
 
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
-import { Badge } from '@/components/ui/Badge';
 import { SampleForm } from './SampleForm';
 import { saveSample, deleteSample, activateBlind } from '@/app/blinds/[blindId]/host/setup/actions';
 import { DEFAULT_AGE_BRACKETS, DEFAULT_PROOF_BRACKETS } from '@/lib/constants/defaultBrackets';
@@ -31,46 +29,12 @@ export interface AttributeData {
 
 function buildDefaultAttributes(): AttributeData[] {
   return [
-    {
-      name: 'distillery',
-      value: '',
-      inputType: 'text',
-      scoringType: 'exact',
-      brackets: null,
-      rounds: ['taste'],
-    },
-    {
-      name: 'type',
-      value: WHISKEY_TYPES[0],
-      inputType: 'dropdown',
-      scoringType: 'exact',
-      brackets: null,
-      rounds: ['taste'],
-    },
-    {
-      name: 'age',
-      value: '',
-      inputType: 'numeric',
-      scoringType: 'bracket',
-      brackets: DEFAULT_AGE_BRACKETS,
-      rounds: ['taste'],
-    },
-    {
-      name: 'proof',
-      value: '',
-      inputType: 'numeric',
-      scoringType: 'bracket',
-      brackets: DEFAULT_PROOF_BRACKETS,
-      rounds: ['taste'],
-    },
-    {
-      name: 'finished',
-      value: 'no',
-      inputType: 'boolean',
-      scoringType: 'exact',
-      brackets: null,
-      rounds: ['taste'],
-    },
+    { name: 'type',         value: WHISKEY_TYPES[0], inputType: 'dropdown', scoringType: 'exact',   brackets: null,                              rounds: ['taste'] },
+    { name: 'proof',        value: '',               inputType: 'numeric',  scoringType: 'bracket', brackets: DEFAULT_PROOF_BRACKETS,             rounds: ['taste'] },
+    { name: 'age',          value: '',               inputType: 'numeric',  scoringType: 'bracket', brackets: DEFAULT_AGE_BRACKETS,               rounds: ['taste'] },
+    { name: 'finished',     value: 'no',             inputType: 'boolean',  scoringType: 'exact',   brackets: null,                              rounds: ['taste'] },
+    { name: 'distillery',   value: '',               inputType: 'text',     scoringType: 'exact',   brackets: null,                              rounds: ['taste'] },
+    { name: 'bottle guess', value: '',               inputType: 'text',     scoringType: 'exact',   brackets: [{ max_delta: 0, points: 5 }],     rounds: ['taste'] },
   ];
 }
 
@@ -78,10 +42,15 @@ function sampleLabel(index: number): string {
   return String.fromCharCode(65 + index); // A, B, C...
 }
 
+function bonusSampleLabel(index: number): string {
+  return `Day 25-${index + 1}`;
+}
+
 interface SampleSetupFormProps {
   blindId: string;
   nosingEnabled: boolean;
   blindStatus: BlindStatus;
+  bonusMode?: boolean;
   initialSamples: Array<{
     id: string;
     label: string;
@@ -93,7 +62,7 @@ interface SampleSetupFormProps {
       value: string;
       input_type: string;
       scoring_type: string;
-      brackets: any;
+      brackets: Array<{ max_delta: number; points: number }> | null;
       questions: Array<{ id: string; round: string }>;
     }>;
   }>;
@@ -103,9 +72,11 @@ export function SampleSetupForm({
   blindId,
   nosingEnabled,
   blindStatus,
+  bonusMode = false,
   initialSamples,
 }: SampleSetupFormProps) {
   const [isPending, startTransition] = useTransition();
+  const [saveError, setSaveError] = useState<string | null>(null);
   const router = useRouter();
 
   const [samples, setSamples] = useState<SampleData[]>(() => {
@@ -114,10 +85,10 @@ export function SampleSetupForm({
         const attrs: AttributeData[] = s.attributes.map(a => ({
           name: a.name,
           value: a.value,
-          inputType: a.input_type as any,
-          scoringType: a.scoring_type as any,
+          inputType: a.input_type as AttributeData['inputType'],
+          scoringType: a.scoring_type as AttributeData['scoringType'],
           brackets: a.brackets,
-          rounds: a.questions.length > 0 ? a.questions.map(q => q.round as any) : ['taste'],
+          rounds: a.questions.length > 0 ? a.questions.map(q => q.round as 'nose' | 'taste') : ['taste'],
         }));
 
         // Ensure finish_type is present if finished=yes
@@ -145,6 +116,7 @@ export function SampleSetupForm({
         };
       });
     }
+    if (bonusMode) return [];
     return [{
       id: null,
       label: 'A',
@@ -160,8 +132,8 @@ export function SampleSetupForm({
       ...prev,
       {
         id: null,
-        label: sampleLabel(prev.length),
-        displayOrder: prev.length,
+        label: bonusMode ? bonusSampleLabel(prev.length) : sampleLabel(prev.length),
+        displayOrder: bonusMode ? 25 + prev.length : prev.length,
         bottleImageUrl: null,
         attributes: buildDefaultAttributes(),
         isExpanded: true,
@@ -197,7 +169,31 @@ export function SampleSetupForm({
     }
     setSamples(prev => {
       const next = prev.filter((_, i) => i !== index);
-      return next.map((s, i) => ({ ...s, label: sampleLabel(i), displayOrder: i }));
+      return next.map((s, i) => ({
+        ...s,
+        label: bonusMode ? bonusSampleLabel(i) : sampleLabel(i),
+        displayOrder: bonusMode ? 25 + i : i,
+      }));
+    });
+  }
+
+  function handleSaveAll() {
+    setSaveError(null);
+    startTransition(async () => {
+      try {
+        for (let i = 0; i < samples.length; i++) {
+          const sample = samples[i]!;
+          const id = await saveSample(blindId, sample.id, {
+            label: sample.label,
+            displayOrder: sample.displayOrder,
+            bottleImageUrl: sample.bottleImageUrl,
+            attributes: sample.attributes,
+          });
+          setSamples(prev => prev.map((s, j) => j === i ? { ...s, id } : s));
+        }
+      } catch (err: unknown) {
+        setSaveError(err instanceof Error ? err.message : 'Failed to save — please try again');
+      }
     });
   }
 
@@ -239,7 +235,7 @@ export function SampleSetupForm({
                   nosingEnabled={nosingEnabled}
                   onChange={(data) => updateSample(index, data)}
                   onSave={() => handleSaveSample(index)}
-                  onDelete={samples.length > 1 ? () => handleDeleteSample(index) : undefined}
+                  onDelete={bonusMode || samples.length > 1 ? () => handleDeleteSample(index) : undefined}
                   isSaving={isPending}
                 />
               </div>
@@ -256,8 +252,9 @@ export function SampleSetupForm({
         + Add sample
       </button>
 
+      {saveError && <p className="text-sm text-red-400 mb-3">{saveError}</p>}
       <div className="flex justify-between items-center">
-        <Button variant="secondary" onClick={() => handleSaveSample(samples.length - 1)} disabled={isPending}>
+        <Button variant="secondary" onClick={handleSaveAll} disabled={isPending}>
           Save draft
         </Button>
         <Button onClick={handleActivate} disabled={isPending || blindStatus === 'active'}>

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { Nav } from '@/components/ui/Nav';
@@ -74,7 +75,9 @@ export default async function TastingPage({
   const nosedSampleIds = new Set((allNosings ?? []).map(n => n.sample_id));
   const hasNosed = nosedSampleIds.has(sampleId);
 
-  const sortedSamples = [...(allSamples ?? [])].sort((a, b) => a.display_order - b.display_order);
+  const sortedSamples = [...(allSamples ?? [])]
+    .sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0))
+    .map(s => ({ ...s, display_order: s.display_order ?? 0 }));
 
   if (hasRevealed) {
     const { data: attributes } = await supabase
@@ -181,6 +184,20 @@ export default async function TastingPage({
         .in('question_id', questionIds)
     : { data: [] };
 
+  const hasWhoQuestion = allValidQuestions.some(
+    (q: any) => q.attribute?.name === 'who submitted this'
+  );
+  const { data: memberRows } = hasWhoQuestion
+    ? await supabase
+        .from('blind_members')
+        .select('profile:profiles!user_id(discord_username)')
+        .eq('blind_id', blindId)
+    : { data: [] };
+  const participants = (memberRows ?? [])
+    .map((m: any) => m.profile?.discord_username as string)
+    .filter(Boolean)
+    .sort();
+
   const currentIdx = sortedSamples.findIndex(s => s.id === sampleId);
   const nextSample = sortedSamples[currentIdx + 1] ?? null;
 
@@ -223,6 +240,7 @@ export default async function TastingPage({
           existingAnswers={existingAnswers as any ?? []}
           phase={phase}
           nextSampleLabel={nextSample?.label}
+          participants={participants}
         />
       </div>
     </div>

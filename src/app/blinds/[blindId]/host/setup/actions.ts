@@ -2,7 +2,6 @@
 
 import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
-import { DEFAULT_AGE_BRACKETS, DEFAULT_PROOF_BRACKETS } from '@/lib/constants/defaultBrackets';
 import { rescoreSample } from '@/lib/scoring';
 
 export interface AttributeInput {
@@ -46,6 +45,7 @@ export async function saveSample(
       .eq('sample_id', sampleId);
 
     const existingByName: Record<string, { id: string; questions: Array<{ id: string; round: string }> }> =
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       Object.fromEntries((existingAttrs ?? []).map((a: any) => [a.name, { id: a.id, questions: a.questions ?? [] }]));
 
     const newNames = new Set(data.attributes.map(a => a.name));
@@ -160,6 +160,14 @@ export async function saveSample(
   }
 
   revalidatePath(`/blinds/${blindId}/host/setup`);
+
+  const { data: adventRow } = await supabase
+    .from('advent_calendars')
+    .select('id')
+    .eq('blind_id', blindId)
+    .maybeSingle();
+  if (adventRow) revalidatePath(`/advent/${adventRow.id}`);
+
   return sampleId;
 }
 
@@ -178,6 +186,12 @@ export async function activateBlind(blindId: string): Promise<{ redirectTo: stri
     .from('blinds')
     .update({ status: 'active' })
     .eq('id', blindId);
+
+  // No-op for regular blinds; marks the advent calendar complete if one exists
+  await supabase
+    .from('advent_calendars')
+    .update({ status: 'complete' })
+    .eq('blind_id', blindId);
 
   return { redirectTo: `/blinds/${blindId}/host` };
 }

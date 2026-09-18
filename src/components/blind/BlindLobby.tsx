@@ -34,6 +34,7 @@ interface BlindLobbyProps {
   };
   currentUserId: string;
   isHost: boolean;
+  isAdventBlind?: boolean;
   isMember: boolean;
   firstSampleId: string | null;
   revealedSampleIds: Set<string>;
@@ -46,7 +47,7 @@ const STATUS_BADGE: Record<BlindStatus, { label: string; variant: 'green' | 'amb
   complete: { label: 'Complete',  variant: 'grey'  },
 };
 
-export function BlindLobby({ blind, currentUserId, isHost, isMember, firstSampleId, revealedSampleIds, nosedSampleIds }: BlindLobbyProps) {
+export function BlindLobby({ blind, currentUserId, isHost, isAdventBlind = false, isMember, firstSampleId, revealedSampleIds, nosedSampleIds }: BlindLobbyProps) {
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
   const badge = STATUS_BADGE[blind.status];
@@ -84,7 +85,7 @@ export function BlindLobby({ blind, currentUserId, isHost, isMember, firstSample
         </div>
 
         <div className="flex gap-2 flex-wrap">
-          {isHost && (
+          {isHost && !isAdventBlind && (
             <>
               <Link href={`/blinds/${blind.id}/host/setup`}>
                 <Button variant="secondary" size="sm">Edit setup</Button>
@@ -94,6 +95,11 @@ export function BlindLobby({ blind, currentUserId, isHost, isMember, firstSample
               </Link>
             </>
           )}
+          {isHost && isAdventBlind && (
+            <Link href={`/blinds/${blind.id}/host`}>
+              <Button variant="secondary" size="sm">Host tools</Button>
+            </Link>
+          )}
           {!isHost && !isMember && blind.status === 'active' && (
             <div className="flex flex-col items-end gap-1">
               <Button onClick={handleJoin} disabled={isPending}>
@@ -102,7 +108,7 @@ export function BlindLobby({ blind, currentUserId, isHost, isMember, firstSample
               {joinError && <p className="text-xs text-red-400">{joinError}</p>}
             </div>
           )}
-          {!isHost && isMember && blind.status === 'active' && firstSampleId && (
+          {(!isHost || isAdventBlind) && isMember && blind.status === 'active' && firstSampleId && (
             <Link href={`/blinds/${blind.id}/taste/${firstSampleId}`}>
               <Button>Continue tasting →</Button>
             </Link>

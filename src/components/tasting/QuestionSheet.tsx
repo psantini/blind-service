@@ -18,7 +18,7 @@ interface Question {
     name: string;
     input_type: string;
     scoring_type: string;
-    brackets: any;
+    brackets: Array<{ max_delta: number; points: number }> | null;
   };
 }
 
@@ -37,6 +37,7 @@ interface QuestionSheetProps {
   existingAnswers: ExistingAnswer[];
   phase: 'nose' | 'taste';
   nextSampleLabel?: string;
+  participants?: string[];
 }
 
 export function QuestionSheet({
@@ -47,6 +48,7 @@ export function QuestionSheet({
   existingAnswers,
   phase,
   nextSampleLabel,
+  participants = [],
 }: QuestionSheetProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -63,7 +65,7 @@ export function QuestionSheet({
     }
     return init;
   });
-  const [answerIds, setAnswerIds] = useState<Record<string, string>>(() => {
+  const [answerIds] = useState<Record<string, string>>(() => {
     const init: Record<string, string> = {};
     existingAnswers.forEach(a => { init[a.question_id] = a.id; });
     return init;
@@ -111,7 +113,7 @@ export function QuestionSheet({
   }
 
   // Sort questions: standard order, then custom
-  const ORDER = ['distillery', 'type', 'age', 'proof', 'finished', 'finish_type'];
+  const ORDER = ['type', 'proof', 'age', 'finished', 'finish_type', 'distillery', 'bottle guess', 'who submitted this', 'rating', 'thoughts'];
   const sortedQuestions = [...questions].sort((a, b) => {
     const ai = ORDER.indexOf(a.attribute.name);
     const bi = ORDER.indexOf(b.attribute.name);
@@ -127,7 +129,12 @@ export function QuestionSheet({
         const attr = q.attribute;
         const value = values[q.id] ?? '';
         const isFinishType = attr.name === 'finish_type';
-        const maxPts = attr.scoring_type === 'bracket' ? 5 : 3;
+        const isScored = attr.scoring_type !== 'none';
+        const maxPts = isScored
+          ? attr.scoring_type === 'bracket'
+            ? Math.max(0, ...((attr.brackets ?? []).map(b => b.points)))
+            : (attr.brackets?.[0]?.points ?? 3)
+          : 0;
 
         // Finish type: always show, but conditionally hint
         if (isFinishType && !finishTypeQuestion) return null;
@@ -142,7 +149,7 @@ export function QuestionSheet({
               <label className="text-sm font-semibold text-[#0D0D0D] capitalize">
                 {attr.name === 'finish_type' ? 'Finish type' : attr.name}
               </label>
-              <span className="text-xs text-[#999]">up to {maxPts} pts</span>
+              {isScored && <span className="text-xs text-[#999]">up to {maxPts} pts</span>}
             </div>
             {attr.scoring_type === 'bracket' && (
               <p className="text-xs text-[#999] mb-2">Scored by proximity — closer = more points</p>
@@ -162,7 +169,11 @@ export function QuestionSheet({
             ) : attr.input_type === 'dropdown' ? (
               <DropdownQuestion
                 value={value}
-                options={WHISKEY_TYPES.map(t => ({ value: t, label: t }))}
+                options={
+                  attr.name === 'who submitted this' && participants.length > 0
+                    ? participants.map(p => ({ value: p, label: p }))
+                    : WHISKEY_TYPES.map(t => ({ value: t, label: t }))
+                }
                 onChange={v => handleChange(q.id, v)}
               />
             ) : attr.input_type === 'numeric' ? (
@@ -170,6 +181,13 @@ export function QuestionSheet({
                 value={value}
                 onChange={v => handleChange(q.id, v)}
                 placeholder="0"
+              />
+            ) : attr.input_type === 'textarea' ? (
+              <FreeTextQuestion
+                value={value}
+                onChange={v => handleChange(q.id, v)}
+                placeholder="Your thoughts…"
+                multiline
               />
             ) : (
               <FreeTextQuestion

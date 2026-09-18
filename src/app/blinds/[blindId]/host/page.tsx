@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { Nav } from '@/components/ui/Nav';
@@ -52,7 +53,27 @@ export default async function HostDashboardPage({
   const samples = [...(blind.samples as any[])].sort((a: any, b: any) => a.display_order - b.display_order);
   const sampleIds = samples.map((s: any) => s.id as string);
 
-  // Fetch attributes and questions
+  // For advent blinds, only show data for samples the host has personally revealed
+  const { data: adventRow } = await supabase
+    .from('advent_calendars')
+    .select('id')
+    .eq('blind_id', blindId)
+    .maybeSingle();
+
+  let visibleSampleIds = sampleIds;
+  if (adventRow) {
+    const { data: hostReveals } = sampleIds.length > 0
+      ? await supabase
+          .from('sample_reveals')
+          .select('sample_id')
+          .eq('user_id', user.id)
+          .in('sample_id', sampleIds)
+      : { data: [] };
+    const hostRevealedSet = new Set((hostReveals ?? []).map((r: any) => r.sample_id as string));
+    visibleSampleIds = sampleIds.filter(id => hostRevealedSet.has(id));
+  }
+
+  // Fetch attributes and questions for all samples (needed for full scoring)
   const { data: attributeRows } = sampleIds.length > 0
     ? await supabase.from('attributes').select('id, name, value, scoring_type, sample_id').in('sample_id', sampleIds)
     : { data: [] };
@@ -65,7 +86,14 @@ export default async function HostDashboardPage({
 
   const qIds = (questionRows ?? []).map((q: any) => q.id);
 
-  // All submitted answers
+  // Question IDs restricted to samples the host has revealed (used to gate fuzzy review and answerMap display)
+  const attrSampleMap = Object.fromEntries((attributeRows ?? []).map((a: any) => [a.id, a.sample_id]));
+  const visibleSampleSet = new Set(visibleSampleIds);
+  const visibleQIds = (questionRows ?? [])
+    .filter((q: any) => visibleSampleSet.has(attrSampleMap[q.attribute_id]))
+    .map((q: any) => q.id as string);
+
+  // All submitted answers across all samples — used for accurate live standings
   const { data: allAnswers } = qIds.length > 0
     ? await supabase
         .from('answers')
@@ -80,8 +108,8 @@ export default async function HostDashboardPage({
         .not('submitted_at', 'is', null)
     : { data: [] };
 
-  // Fuzzy review items
-  const { data: fuzzyAnswers } = qIds.length > 0
+  // Fuzzy review: only for samples the host has revealed
+  const { data: fuzzyAnswers } = visibleQIds.length > 0
     ? await supabase
         .from('answers')
         .select(`
@@ -101,10 +129,10 @@ export default async function HostDashboardPage({
         `)
         .eq('fuzzy_flagged', true)
         .is('host_approved', null)
-        .in('question_id', qIds)
+        .in('question_id', visibleQIds)
     : { data: [] };
 
-  // Compute live standings
+  // Compute live standings using all answers
   const questionRoundMap = Object.fromEntries(
     (questionRows ?? []).map((q: any) => [q.id, q.round])
   );
@@ -126,26 +154,30 @@ export default async function HostDashboardPage({
   }
   const ranked = Object.values(scoreMap).sort((a, b) => b.total - a.total);
 
-  // Build sample breakdown for SampleBreakdown component
-  const sampleBreakdowns = samples.map((s: any) => {
-    const attrs = (attributeRows ?? []).filter((a: any) => a.sample_id === s.id);
-    const attributes = attrs.map((attr: any) => {
-      const q = (questionRows ?? []).find((q: any) => q.attribute_id === attr.id);
-      return {
-        questionId: q?.id ?? '',
-        attrId: attr.id,
-        name: attr.name,
-        correctValue: attr.value,
-        round: (q?.round ?? 'taste') as 'nose' | 'taste',
-        scoringType: (attr.scoring_type ?? 'exact') as 'exact' | 'bracket' | 'none',
-      };
-    }).filter((a: any) => a.questionId);
-    return { id: s.id, label: s.label, attributes };
-  });
+  // Sample breakdown: only visible (host-revealed) samples to avoid leaking correct values
+  const sampleBreakdowns = samples
+    .filter((s: any) => visibleSampleSet.has(s.id))
+    .map((s: any) => {
+      const attrs = (attributeRows ?? []).filter((a: any) => a.sample_id === s.id);
+      const attributes = attrs.map((attr: any) => {
+        const q = (questionRows ?? []).find((q: any) => q.attribute_id === attr.id);
+        return {
+          questionId: q?.id ?? '',
+          attrId: attr.id,
+          name: attr.name,
+          correctValue: attr.value,
+          round: (q?.round ?? 'taste') as 'nose' | 'taste',
+          scoringType: (attr.scoring_type ?? 'exact') as 'exact' | 'bracket' | 'none',
+        };
+      }).filter((a: any) => a.questionId);
+      return { id: s.id, label: s.label, attributes };
+    });
 
-  // answerMap[userId][questionId]
+  // answerMap: only populate for visible questions to avoid leaking participant guesses for unrevealed days
+  const visibleQIdSet = new Set(visibleQIds);
   const answerMap: Record<string, Record<string, { answerId: string; value: string | null; points: number | null; fuzzyPending: boolean; hostApproved: boolean | null }>> = {};
   for (const a of (allAnswers ?? []) as any[]) {
+    if (!visibleQIdSet.has(a.question_id)) continue;
     if (!answerMap[a.user_id]) answerMap[a.user_id] = {};
     answerMap[a.user_id][a.question_id] = {
       answerId: a.id,

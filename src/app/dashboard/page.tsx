@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { redirect } from 'next/navigation';
@@ -6,6 +7,7 @@ import { Nav } from '@/components/ui/Nav';
 import { BlindCard } from '@/components/blind/BlindCard';
 import { Badge } from '@/components/ui/Badge';
 import { GroupBadge } from '@/components/ui/GroupBadge';
+import { NewBlindDropdown } from '@/components/ui/NewBlindDropdown';
 import { BlindStatus } from '@/types';
 
 const STATUS_BADGE: Record<BlindStatus, { label: string; variant: 'green' | 'amber' | 'grey' }> = {
@@ -65,6 +67,18 @@ export default async function DashboardPage() {
   const hostedBlinds = (myBlinds ?? []).filter(b => hostedIds.has(b.id));
   const joinedBlinds = (myBlinds ?? []).filter(b => joinedIds.has(b.id));
 
+  // Map blind_id → advent_calendar id for setup-phase advent blinds the user hosts
+  const hostedSetupIds = hostedBlinds.filter(b => b.status === 'setup').map(b => b.id);
+  const { data: adventRows } = hostedSetupIds.length > 0
+    ? await adminClient
+        .from('advent_calendars')
+        .select('id, blind_id')
+        .in('blind_id', hostedSetupIds)
+    : { data: [] };
+  const adventByBlindId = Object.fromEntries(
+    (adventRows ?? []).map((a: any) => [a.blind_id, a.id])
+  );
+
   // Public blinds: all active/setup blinds the user hasn't joined
   const { data: publicBlinds } = await supabase
     .from('blinds')
@@ -85,12 +99,7 @@ export default async function DashboardPage() {
       <div className="max-w-3xl mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-2xl font-display italic font-bold text-parchment">Dashboard</h1>
-          <Link
-            href="/blinds/new"
-            className="bg-amber hover:bg-amber/80 text-black text-sm font-medium px-4 py-2 rounded-lg transition-colors"
-          >
-            + New blind
-          </Link>
+          <NewBlindDropdown showAdvent={isGroupManager} />
         </div>
 
         {/* Hosting */}
@@ -101,7 +110,7 @@ export default async function DashboardPage() {
           ) : (
             <div className="flex flex-col gap-3">
               {hostedBlinds.map(blind => (
-                <BlindCard key={blind.id} blind={blind as any} currentUserId={user.id} />
+                <BlindCard key={blind.id} blind={blind as any} currentUserId={user.id} adventId={adventByBlindId[blind.id]} />
               ))}
             </div>
           )}

@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import Image from 'next/image';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { redirect } from 'next/navigation';
@@ -103,7 +105,7 @@ export default async function GroupsPage() {
                 <div className="flex items-center justify-between px-5 py-3" style={{ borderBottom: '0.5px solid #E5DDD0' }}>
                   <div className="flex items-center gap-3">
                     {group.icon_url && (
-                      <img src={group.icon_url} alt={group.name} className="w-7 h-7 rounded-full object-cover" />
+                      <Image src={group.icon_url} alt={group.name} width={28} height={28} className="w-7 h-7 rounded-full object-cover" />
                     )}
                     <div>
                       <p className="text-sm font-semibold text-[#0D0D0D]">{group.name}</p>

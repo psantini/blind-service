@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // Only available outside production — used by Playwright visual regression tests
 import { redirect } from 'next/navigation';
 import { Button } from '@/components/ui/Button';

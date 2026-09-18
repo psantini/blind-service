@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { Nav } from '@/components/ui/Nav';
@@ -93,8 +94,6 @@ export default async function LeaderboardPage({
   const ranked = Object.values(scoreMap).sort((a, b) => b.total - a.total);
 
   // Build sample breakdown data
-  const attrMap = Object.fromEntries((attributeRows ?? []).map((a: any) => [a.id, a]));
-  const questionAttrMap = Object.fromEntries((questionRows ?? []).map((q: any) => [q.id, q.attribute_id]));
 
   const sampleBreakdowns = samples.map((s: any) => {
     const sampleAttrs = (attributeRows ?? []).filter((a: any) => a.sample_id === s.id);

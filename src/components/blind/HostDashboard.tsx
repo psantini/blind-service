@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
-import { reviewFuzzyAnswer, completeBlind } from '@/app/blinds/[blindId]/host/actions';
+import { completeBlind } from '@/app/blinds/[blindId]/host/actions';
 import { FuzzyReviewPanel } from '@/components/scoring/FuzzyReviewPanel';
 import { Leaderboard } from '@/components/leaderboard/Leaderboard';
 import { SampleBreakdown } from '@/components/leaderboard/SampleBreakdown';
@@ -86,7 +86,7 @@ const STATUS_BADGE: Record<BlindStatus, { label: string; variant: 'green' | 'amb
   complete: { label: 'Complete',  variant: 'grey'  },
 };
 
-export function HostDashboard({ blind, fuzzyAnswers, allAnswers, ranked, currentUserId, sampleBreakdowns, answerMap, players, onOverride }: HostDashboardProps) {
+export function HostDashboard({ blind, fuzzyAnswers, ranked, currentUserId, sampleBreakdowns, answerMap, players, onOverride }: HostDashboardProps) {
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
   const badge = STATUS_BADGE[blind.status];

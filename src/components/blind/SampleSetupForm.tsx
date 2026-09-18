@@ -31,46 +31,12 @@ export interface AttributeData {
 
 function buildDefaultAttributes(): AttributeData[] {
   return [
-    {
-      name: 'distillery',
-      value: '',
-      inputType: 'text',
-      scoringType: 'exact',
-      brackets: null,
-      rounds: ['taste'],
-    },
-    {
-      name: 'type',
-      value: WHISKEY_TYPES[0],
-      inputType: 'dropdown',
-      scoringType: 'exact',
-      brackets: null,
-      rounds: ['taste'],
-    },
-    {
-      name: 'age',
-      value: '',
-      inputType: 'numeric',
-      scoringType: 'bracket',
-      brackets: DEFAULT_AGE_BRACKETS,
-      rounds: ['taste'],
-    },
-    {
-      name: 'proof',
-      value: '',
-      inputType: 'numeric',
-      scoringType: 'bracket',
-      brackets: DEFAULT_PROOF_BRACKETS,
-      rounds: ['taste'],
-    },
-    {
-      name: 'finished',
-      value: 'no',
-      inputType: 'boolean',
-      scoringType: 'exact',
-      brackets: null,
-      rounds: ['taste'],
-    },
+    { name: 'type',         value: WHISKEY_TYPES[0], inputType: 'dropdown', scoringType: 'exact',   brackets: null,                              rounds: ['taste'] },
+    { name: 'proof',        value: '',               inputType: 'numeric',  scoringType: 'bracket', brackets: DEFAULT_PROOF_BRACKETS,             rounds: ['taste'] },
+    { name: 'age',          value: '',               inputType: 'numeric',  scoringType: 'bracket', brackets: DEFAULT_AGE_BRACKETS,               rounds: ['taste'] },
+    { name: 'finished',     value: 'no',             inputType: 'boolean',  scoringType: 'exact',   brackets: null,                              rounds: ['taste'] },
+    { name: 'distillery',   value: '',               inputType: 'text',     scoringType: 'exact',   brackets: null,                              rounds: ['taste'] },
+    { name: 'bottle guess', value: '',               inputType: 'text',     scoringType: 'exact',   brackets: [{ max_delta: 0, points: 5 }],     rounds: ['taste'] },
   ];
 }
 

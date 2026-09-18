@@ -113,7 +113,7 @@ export function QuestionSheet({
   }
 
   // Sort questions: standard order, then custom
-  const ORDER = ['distillery', 'type', 'age', 'proof', 'finished', 'finish_type'];
+  const ORDER = ['type', 'proof', 'age', 'finished', 'finish_type', 'distillery', 'bottle guess', 'who submitted this', 'rating', 'thoughts'];
   const sortedQuestions = [...questions].sort((a, b) => {
     const ai = ORDER.indexOf(a.attribute.name);
     const bi = ORDER.indexOf(b.attribute.name);
@@ -129,7 +129,12 @@ export function QuestionSheet({
         const attr = q.attribute;
         const value = values[q.id] ?? '';
         const isFinishType = attr.name === 'finish_type';
-        const maxPts = attr.scoring_type === 'bracket' ? 5 : 3;
+        const isScored = attr.scoring_type !== 'none';
+        const maxPts = isScored
+          ? attr.scoring_type === 'bracket'
+            ? Math.max(0, ...((attr.brackets ?? []).map((b: any) => b.points)))
+            : (attr.brackets?.[0]?.points ?? 3)
+          : 0;
 
         // Finish type: always show, but conditionally hint
         if (isFinishType && !finishTypeQuestion) return null;
@@ -144,7 +149,7 @@ export function QuestionSheet({
               <label className="text-sm font-semibold text-[#0D0D0D] capitalize">
                 {attr.name === 'finish_type' ? 'Finish type' : attr.name}
               </label>
-              <span className="text-xs text-[#999]">up to {maxPts} pts</span>
+              {isScored && <span className="text-xs text-[#999]">up to {maxPts} pts</span>}
             </div>
             {attr.scoring_type === 'bracket' && (
               <p className="text-xs text-[#999] mb-2">Scored by proximity — closer = more points</p>

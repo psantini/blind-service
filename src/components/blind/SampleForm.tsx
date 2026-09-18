@@ -21,7 +21,7 @@ interface SampleFormProps {
 }
 
 // Attributes whose scoring TYPE is locked (can't switch exact ↔ bracket)
-const FIXED_SCORING_TYPE = ['distillery', 'type', 'finished', 'finish_type'];
+const FIXED_SCORING_TYPE = ['distillery', 'type', 'finished', 'finish_type', 'bottle guess'];
 
 function BracketEditor({
   brackets,
@@ -214,7 +214,7 @@ export function SampleForm({ blindId, sample, nosingEnabled, onChange, onSave, o
       <div className="space-y-3">
         {sample.attributes.map((attr, attrIdx) => {
           const isFinishType = attr.name === 'finish_type';
-          const isStandard = ['distillery', 'type', 'age', 'proof', 'finished', 'finish_type'].includes(attr.name);
+          const isStandard = ['distillery', 'type', 'age', 'proof', 'finished', 'finish_type', 'bottle guess'].includes(attr.name);
           const fixedScoringType = FIXED_SCORING_TYPE.includes(attr.name);
           const maxPts = attr.scoringType === 'bracket'
             ? Math.max(0, ...((attr.brackets ?? []).map(b => b.points)))
@@ -292,7 +292,7 @@ export function SampleForm({ blindId, sample, nosingEnabled, onChange, onSave, o
                     ))}
 
                     {/* Fuzzy badge for applicable attrs */}
-                    {(attr.name === 'distillery' || attr.name === 'finish_type') && (
+                    {attr.inputType === 'text' && attr.scoringType === 'exact' && (
                       <Badge variant="amber">fuzzy</Badge>
                     )}
 

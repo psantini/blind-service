@@ -22,17 +22,19 @@ export default async function StatsPage() {
 
   const myStats = stats?.find(s => s.user_id === user.id);
 
-  const leaderboardEntries = (stats ?? []).map(s => ({
-    profile: {
-      id: s.user_id,
-      discord_username: s.discord_username,
-      discord_avatar_url: s.discord_avatar_url,
-    },
-    total: Number(s.total_points),
-    nose: Number(s.total_nose_points),
-    taste: Number(s.total_taste_points),
-    pending: 0,
-  }));
+  const leaderboardEntries = (stats ?? [])
+    .filter((s): s is typeof s & { user_id: string } => s.user_id !== null)
+    .map(s => ({
+      profile: {
+        id: s.user_id,
+        discord_username: s.discord_username ?? '',
+        discord_avatar_url: s.discord_avatar_url,
+      },
+      total: Number(s.total_points),
+      nose: Number(s.total_nose_points),
+      taste: Number(s.total_taste_points),
+      pending: 0,
+    }));
 
   return (
     <div className="min-h-screen">

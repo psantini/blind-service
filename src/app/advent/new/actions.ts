@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { redirect } from 'next/navigation';
+import type { Json } from '@/types/database';
 
 interface ManifestRow {
   userId: string;
@@ -80,7 +81,7 @@ export async function createAdventCalendar(params: {
     .insert({
       blind_id: blind.id,
       status: 'collecting',
-      question_templates: questionTemplates,
+      question_templates: questionTemplates as unknown as Json,
     })
     .select('id')
     .single();

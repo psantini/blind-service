@@ -75,7 +75,9 @@ export default async function TastingPage({
   const nosedSampleIds = new Set((allNosings ?? []).map(n => n.sample_id));
   const hasNosed = nosedSampleIds.has(sampleId);
 
-  const sortedSamples = [...(allSamples ?? [])].sort((a, b) => a.display_order - b.display_order);
+  const sortedSamples = [...(allSamples ?? [])]
+    .sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0))
+    .map(s => ({ ...s, display_order: s.display_order ?? 0 }));
 
   if (hasRevealed) {
     const { data: attributes } = await supabase

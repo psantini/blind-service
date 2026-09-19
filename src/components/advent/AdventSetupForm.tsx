@@ -20,6 +20,7 @@ interface Group {
 
 interface ManifestRow {
   userId: string;
+  placeholderName: string;
   bottlesExpected: number;
 }
 
@@ -77,7 +78,7 @@ function BracketEditor({
 export function AdventSetupForm({ groups }: { groups: Group[] }) {
   const [name, setName] = useState('');
   const [groupId, setGroupId] = useState(groups[0]?.id ?? '');
-  const [manifest, setManifest] = useState<ManifestRow[]>([{ userId: '', bottlesExpected: 3 }]);
+  const [manifest, setManifest] = useState<ManifestRow[]>([{ userId: '', placeholderName: '', bottlesExpected: 3 }]);
   const [templates, setTemplates] = useState<AdventAttributeTemplate[]>(buildDefaultTemplates);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -85,13 +86,14 @@ export function AdventSetupForm({ groups }: { groups: Group[] }) {
   const currentGroup = groups.find(g => g.id === groupId);
   const selectedUserIds = new Set(manifest.map(r => r.userId).filter(Boolean));
   const total = manifest.reduce((sum, r) => sum + r.bottlesExpected, 0);
-  const canSubmit = !!name.trim() && !!groupId && total === 24 && manifest.every(r => r.userId) && !isPending;
+  const allRowsIdentified = manifest.every(r => r.userId || r.placeholderName.trim());
+  const canSubmit = !!name.trim() && !!groupId && total === 24 && allRowsIdentified && !isPending;
   const disabledReason = !name.trim()
     ? 'Enter a calendar name'
     : !groupId
     ? 'Select a group'
-    : !manifest.every(r => r.userId)
-    ? 'All contributors must be selected'
+    : !allRowsIdentified
+    ? 'All contributors must be selected or given a placeholder name'
     : total !== 24
     ? `Bottle total must equal 24 (currently ${total})`
     : null;
@@ -99,7 +101,7 @@ export function AdventSetupForm({ groups }: { groups: Group[] }) {
   // ── Manifest handlers ──────────────────────────────────────────────────────
 
   function addManifestRow() {
-    setManifest(prev => [...prev, { userId: '', bottlesExpected: 3 }]);
+    setManifest(prev => [...prev, { userId: '', placeholderName: '', bottlesExpected: 3 }]);
   }
 
   function removeManifestRow(i: number) {
@@ -142,7 +144,16 @@ export function AdventSetupForm({ groups }: { groups: Group[] }) {
     setError(null);
     startTransition(async () => {
       try {
-        const result = await createAdventCalendar({ name: name.trim(), groupId, manifest, questionTemplates: templates });
+        const result = await createAdventCalendar({
+          name: name.trim(),
+          groupId,
+          manifest: manifest.map(r => ({
+            userId: r.userId || null,
+            placeholderName: r.userId ? null : (r.placeholderName.trim() || null),
+            bottlesExpected: r.bottlesExpected,
+          })),
+          questionTemplates: templates,
+        });
         if (result?.redirectTo) window.location.href = result.redirectTo;
       } catch (err: unknown) {
         setError(err instanceof Error ? err.message : 'Something went wrong');
@@ -169,7 +180,7 @@ export function AdventSetupForm({ groups }: { groups: Group[] }) {
         ) : groups.length > 1 ? (
           <div>
             <label className="block text-sm font-medium text-[#0D0D0D] mb-1.5">Group</label>
-            <select value={groupId} onChange={e => { setGroupId(e.target.value); setManifest([{ userId: '', bottlesExpected: 3 }]); }} className={selectClass}>
+            <select value={groupId} onChange={e => { setGroupId(e.target.value); setManifest([{ userId: '', placeholderName: '', bottlesExpected: 3 }]); }} className={selectClass}>
               {groups.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
             </select>
           </div>
@@ -190,18 +201,27 @@ export function AdventSetupForm({ groups }: { groups: Group[] }) {
             const availableMembers = (currentGroup?.members ?? []).filter(
               m => !selectedUserIds.has(m.id) || m.id === row.userId
             );
+            const isPlaceholder = !row.userId;
             return (
               <div key={i} className="flex items-center gap-2">
                 <select
                   value={row.userId}
-                  onChange={e => updateManifestRow(i, { userId: e.target.value })}
-                  className={`${selectClass} flex-1`}
+                  onChange={e => updateManifestRow(i, { userId: e.target.value, placeholderName: '' })}
+                  className={`${selectClass} ${isPlaceholder ? 'w-36 shrink-0' : 'flex-1'}`}
                 >
-                  <option value="">Select contributor…</option>
+                  <option value="">Placeholder…</option>
                   {availableMembers.map(m => (
                     <option key={m.id} value={m.id}>{m.discord_username}</option>
                   ))}
                 </select>
+                {isPlaceholder && (
+                  <Input
+                    value={row.placeholderName}
+                    onChange={e => updateManifestRow(i, { placeholderName: e.target.value })}
+                    placeholder="Their name"
+                    className="flex-1 text-sm"
+                  />
+                )}
                 <div className="flex items-center gap-1.5 shrink-0">
                   <Input
                     type="number"
@@ -226,7 +246,7 @@ export function AdventSetupForm({ groups }: { groups: Group[] }) {
         <button
           type="button"
           onClick={addManifestRow}
-          disabled={(currentGroup?.members.length ?? 0) <= manifest.length}
+          disabled={manifest.length >= 24}
           className="text-xs text-[#666] hover:text-[#0D0D0D] transition-colors disabled:opacity-40"
         >
           + Add contributor

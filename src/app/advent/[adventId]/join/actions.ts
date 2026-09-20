@@ -18,6 +18,48 @@ interface BottleInput {
   }>;
 }
 
+export async function claimPlaceholderSlot(params: {
+  adventId: string;
+  manifestRowId: string;
+}): Promise<void> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect('/');
+
+  const { adventId, manifestRowId } = params;
+  const adminClient = createAdminClient();
+
+  // Re-fetch to confirm the slot is still unclaimed
+  const { data: row } = await adminClient
+    .from('advent_contributor_manifest')
+    .select('id, user_id, advent_calendar_id')
+    .eq('id', manifestRowId)
+    .eq('advent_calendar_id', adventId)
+    .single();
+
+  if (!row) throw new Error('Slot not found');
+  if (row.user_id !== null) throw new Error('This slot has already been claimed');
+
+  // Check the user isn't already on the manifest for this calendar
+  const { data: existing } = await adminClient
+    .from('advent_contributor_manifest')
+    .select('id')
+    .eq('advent_calendar_id', adventId)
+    .eq('user_id', user.id)
+    .single();
+
+  if (existing) throw new Error('You already have a slot in this calendar');
+
+  const { error } = await adminClient
+    .from('advent_contributor_manifest')
+    .update({ user_id: user.id, placeholder_name: null })
+    .eq('id', manifestRowId);
+
+  if (error) throw error;
+
+  revalidatePath(`/advent/${adventId}/join`);
+}
+
 export async function submitContributorBottles(params: {
   adventId: string;
   bottles: BottleInput[];

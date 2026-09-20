@@ -1,12 +1,13 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { redirect } from 'next/navigation';
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import Image from 'next/image';
 import { Nav } from '@/components/ui/Nav';
 import { DiscordLoginButton } from '@/components/auth/DiscordLoginButton';
 import { DevLoginPanel } from '@/components/auth/DevLoginPanel';
 import { ContributorSubmissionForm } from '@/components/advent/ContributorSubmissionForm';
+import { ClaimPlaceholderForm } from '@/components/advent/ClaimPlaceholderForm';
 
 export default async function AdventJoinPage({
   params,
@@ -74,14 +75,43 @@ export default async function AdventJoinPage({
     .eq('user_id', user.id)
     .single();
 
-  // Not on the list
+  // Not on the list — check for unclaimed placeholder slots
   if (!manifestRow) {
+    const { data: placeholders } = await adminClient
+      .from('advent_contributor_manifest')
+      .select('id, placeholder_name, bottles_expected')
+      .eq('advent_calendar_id', adventId)
+      .is('user_id', null)
+      .order('placeholder_name');
+
+    if (!placeholders || placeholders.length === 0) {
+      return (
+        <div className="min-h-screen">
+          <Nav profile={profile} backHref="/dashboard" backLabel="Dashboard" />
+          <div className="max-w-md mx-auto px-4 py-16 text-center space-y-2">
+            <h1 className="text-2xl font-display italic font-bold text-parchment">{blind?.name ?? 'Advent Calendar'}</h1>
+            <p className="text-smoke text-sm">Your account isn&apos;t on the contributor list for this calendar.</p>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className="min-h-screen">
         <Nav profile={profile} backHref="/dashboard" backLabel="Dashboard" />
-        <div className="max-w-md mx-auto px-4 py-16 text-center space-y-2">
-          <h1 className="text-2xl font-display italic font-bold text-parchment">{blind?.name ?? 'Advent Calendar'}</h1>
-          <p className="text-smoke text-sm">Your account isn&apos;t on the contributor list for this calendar.</p>
+        <div className="max-w-md mx-auto px-4 py-16 space-y-6">
+          <div className="text-center">
+            <h1 className="text-2xl font-display italic font-bold text-parchment mb-2">{blind?.name ?? 'Advent Calendar'}</h1>
+            <p className="text-smoke text-sm">Which contributor are you?</p>
+          </div>
+          <ClaimPlaceholderForm
+            adventId={adventId}
+            placeholders={placeholders.map((p: any) => ({
+              id: p.id,
+              name: p.placeholder_name as string,
+              bottlesExpected: p.bottles_expected,
+            }))}
+          />
         </div>
       </div>
     );

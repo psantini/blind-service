@@ -19,6 +19,7 @@ interface Group {
 }
 
 interface ManifestRow {
+  type: 'member' | 'placeholder';
   userId: string;
   placeholderName: string;
   bottlesExpected: number;
@@ -78,7 +79,7 @@ function BracketEditor({
 export function AdventSetupForm({ groups }: { groups: Group[] }) {
   const [name, setName] = useState('');
   const [groupId, setGroupId] = useState(groups[0]?.id ?? '');
-  const [manifest, setManifest] = useState<ManifestRow[]>([{ userId: '', placeholderName: '', bottlesExpected: 3 }]);
+  const [manifest, setManifest] = useState<ManifestRow[]>([{ type: 'member', userId: '', placeholderName: '', bottlesExpected: 3 }]);
   const [templates, setTemplates] = useState<AdventAttributeTemplate[]>(buildDefaultTemplates);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -86,7 +87,9 @@ export function AdventSetupForm({ groups }: { groups: Group[] }) {
   const currentGroup = groups.find(g => g.id === groupId);
   const selectedUserIds = new Set(manifest.map(r => r.userId).filter(Boolean));
   const total = manifest.reduce((sum, r) => sum + r.bottlesExpected, 0);
-  const allRowsIdentified = manifest.every(r => r.userId || r.placeholderName.trim());
+  const allRowsIdentified = manifest.every(r =>
+    r.type === 'member' ? !!r.userId : !!r.placeholderName.trim()
+  );
   const canSubmit = !!name.trim() && !!groupId && total === 24 && allRowsIdentified && !isPending;
   const disabledReason = !name.trim()
     ? 'Enter a calendar name'
@@ -101,7 +104,11 @@ export function AdventSetupForm({ groups }: { groups: Group[] }) {
   // ── Manifest handlers ──────────────────────────────────────────────────────
 
   function addManifestRow() {
-    setManifest(prev => [...prev, { userId: '', placeholderName: '', bottlesExpected: 3 }]);
+    setManifest(prev => [...prev, { type: 'member', userId: '', placeholderName: '', bottlesExpected: 3 }]);
+  }
+
+  function addPlaceholderRow() {
+    setManifest(prev => [...prev, { type: 'placeholder', userId: '', placeholderName: '', bottlesExpected: 3 }]);
   }
 
   function removeManifestRow(i: number) {
@@ -148,8 +155,8 @@ export function AdventSetupForm({ groups }: { groups: Group[] }) {
           name: name.trim(),
           groupId,
           manifest: manifest.map(r => ({
-            userId: r.userId || null,
-            placeholderName: r.userId ? null : (r.placeholderName.trim() || null),
+            userId: r.type === 'member' ? (r.userId || null) : null,
+            placeholderName: r.type === 'placeholder' ? (r.placeholderName.trim() || null) : null,
             bottlesExpected: r.bottlesExpected,
           })),
           questionTemplates: templates,
@@ -180,7 +187,7 @@ export function AdventSetupForm({ groups }: { groups: Group[] }) {
         ) : groups.length > 1 ? (
           <div>
             <label className="block text-sm font-medium text-[#0D0D0D] mb-1.5">Group</label>
-            <select value={groupId} onChange={e => { setGroupId(e.target.value); setManifest([{ userId: '', placeholderName: '', bottlesExpected: 3 }]); }} className={selectClass}>
+            <select value={groupId} onChange={e => { setGroupId(e.target.value); setManifest([{ type: 'member', userId: '', placeholderName: '', bottlesExpected: 3 }]); }} className={selectClass}>
               {groups.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
             </select>
           </div>
@@ -201,26 +208,29 @@ export function AdventSetupForm({ groups }: { groups: Group[] }) {
             const availableMembers = (currentGroup?.members ?? []).filter(
               m => !selectedUserIds.has(m.id) || m.id === row.userId
             );
-            const isPlaceholder = !row.userId;
             return (
               <div key={i} className="flex items-center gap-2">
-                <select
-                  value={row.userId}
-                  onChange={e => updateManifestRow(i, { userId: e.target.value, placeholderName: '' })}
-                  className={`${selectClass} ${isPlaceholder ? 'w-36 shrink-0' : 'flex-1'}`}
-                >
-                  <option value="">Placeholder…</option>
-                  {availableMembers.map(m => (
-                    <option key={m.id} value={m.id}>{m.discord_username}</option>
-                  ))}
-                </select>
-                {isPlaceholder && (
-                  <Input
-                    value={row.placeholderName}
-                    onChange={e => updateManifestRow(i, { placeholderName: e.target.value })}
-                    placeholder="Their name"
-                    className="flex-1 text-sm"
-                  />
+                {row.type === 'member' ? (
+                  <select
+                    value={row.userId}
+                    onChange={e => updateManifestRow(i, { userId: e.target.value })}
+                    className={`${selectClass} flex-1`}
+                  >
+                    <option value="">Select contributor…</option>
+                    {availableMembers.map(m => (
+                      <option key={m.id} value={m.id}>{m.discord_username}</option>
+                    ))}
+                  </select>
+                ) : (
+                  <div className="flex-1 flex items-center gap-2">
+                    <Input
+                      value={row.placeholderName}
+                      onChange={e => updateManifestRow(i, { placeholderName: e.target.value })}
+                      placeholder="Name (not yet registered)"
+                      className="flex-1 text-sm"
+                    />
+                    <span className="text-xs text-[#999] shrink-0 italic">placeholder</span>
+                  </div>
                 )}
                 <div className="flex items-center gap-1.5 shrink-0">
                   <Input
@@ -243,14 +253,24 @@ export function AdventSetupForm({ groups }: { groups: Group[] }) {
           })}
         </div>
 
-        <button
-          type="button"
-          onClick={addManifestRow}
-          disabled={manifest.length >= 24}
-          className="text-xs text-[#666] hover:text-[#0D0D0D] transition-colors disabled:opacity-40"
-        >
-          + Add contributor
-        </button>
+        <div className="flex gap-4">
+          <button
+            type="button"
+            onClick={addManifestRow}
+            disabled={manifest.length >= 24}
+            className="text-xs text-[#666] hover:text-[#0D0D0D] transition-colors disabled:opacity-40"
+          >
+            + Add member
+          </button>
+          <button
+            type="button"
+            onClick={addPlaceholderRow}
+            disabled={manifest.length >= 24}
+            className="text-xs text-[#666] hover:text-[#0D0D0D] transition-colors disabled:opacity-40"
+          >
+            + Add placeholder
+          </button>
+        </div>
 
         {total !== 24 && total > 0 && (
           <p className="text-xs text-amber">{total < 24 ? `${24 - total} more bottles needed` : `${total - 24} too many bottles`}</p>

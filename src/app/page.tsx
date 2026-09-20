@@ -27,6 +27,16 @@ export default async function LandingPage({
           </p>
         )}
 
+        {error === 'discord_no_email' && (
+          <p className="text-red-400 text-sm mb-6 bg-[#1A0A0A] border border-[#3A1A1A] rounded-lg px-4 py-3">
+            Your Discord account doesn&apos;t have a verified email address. Please add and verify one in your{' '}
+            <a href="https://discord.com/settings/account" target="_blank" rel="noreferrer" className="underline hover:text-red-300">
+              Discord account settings
+            </a>
+            , then try again.
+          </p>
+        )}
+
         {error === 'not_authorized' && (
           <p className="text-red-400 text-sm mb-6 bg-[#1A0A0A] border border-[#3A1A1A] rounded-lg px-4 py-3">
             You don&apos;t have access. Ask a group admin for an invite link.

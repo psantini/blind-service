@@ -25,7 +25,12 @@ export async function GET(request: Request) {
     const supabase = await createClient();
     const { data: { session }, error } = await supabase.auth.exchangeCodeForSession(code);
 
-    if (!error && session) {
+    if (error) {
+      const errorCode = /email/i.test(error.message) ? 'discord_no_email' : 'auth_failed';
+      return NextResponse.redirect(`${origin}/?error=${errorCode}`);
+    }
+
+    if (session) {
       const adminClient = createAdminClient();
       const provider = session.user.app_metadata?.provider;
 

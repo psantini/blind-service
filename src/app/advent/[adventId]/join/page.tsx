@@ -54,8 +54,15 @@ export default async function AdventJoinPage({
 
   const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single();
 
-  // Submissions closed
-  if (advent.status !== 'collecting') {
+  const { data: manifestRow } = await adminClient
+    .from('advent_contributor_manifest')
+    .select('id, bottles_expected, has_submitted')
+    .eq('advent_calendar_id', adventId)
+    .eq('user_id', user.id)
+    .single();
+
+  // Submissions closed — but let contributors who already submitted still see their letters
+  if (advent.status !== 'collecting' && !manifestRow?.has_submitted) {
     return (
       <div className="min-h-screen">
         <Nav profile={profile} backHref="/dashboard" backLabel="Dashboard" />
@@ -66,13 +73,6 @@ export default async function AdventJoinPage({
       </div>
     );
   }
-
-  const { data: manifestRow } = await adminClient
-    .from('advent_contributor_manifest')
-    .select('id, bottles_expected, has_submitted')
-    .eq('advent_calendar_id', adventId)
-    .eq('user_id', user.id)
-    .single();
 
   // Not on the list
   if (!manifestRow) {

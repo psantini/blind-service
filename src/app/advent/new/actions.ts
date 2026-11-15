@@ -6,7 +6,8 @@ import { redirect } from 'next/navigation';
 import type { Json } from '@/types/database';
 
 interface ManifestRow {
-  userId: string;
+  userId: string | null;
+  placeholderName: string | null;
   bottlesExpected: number;
 }
 
@@ -34,8 +35,11 @@ export async function createAdventCalendar(params: {
 
   const total = manifest.reduce((sum, r) => sum + r.bottlesExpected, 0);
   if (total !== 24) throw new Error('Bottle total must equal 24');
-  if (manifest.some(r => !r.userId)) throw new Error('All manifest rows must have a contributor selected');
-  if (new Set(manifest.map(r => r.userId)).size !== manifest.length) throw new Error('Duplicate contributors in manifest');
+  if (manifest.some(r => !r.userId && !r.placeholderName?.trim())) {
+    throw new Error('All manifest rows must have a contributor selected or a placeholder name');
+  }
+  const userIds = manifest.map(r => r.userId).filter(Boolean);
+  if (new Set(userIds).size !== userIds.length) throw new Error('Duplicate contributors in manifest');
 
   const adminClient = createAdminClient();
 
@@ -91,7 +95,8 @@ export async function createAdventCalendar(params: {
   await supabase.from('advent_contributor_manifest').insert(
     manifest.map(r => ({
       advent_calendar_id: advent.id,
-      user_id: r.userId,
+      user_id: r.userId ?? null,
+      placeholder_name: r.userId ? null : (r.placeholderName?.trim() ?? null),
       bottles_expected: r.bottlesExpected,
     }))
   );

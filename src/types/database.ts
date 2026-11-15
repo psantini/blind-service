@@ -111,21 +111,24 @@ export type Database = {
           bottles_expected: number
           has_submitted: boolean
           id: string
-          user_id: string
+          placeholder_name: string | null
+          user_id: string | null
         }
         Insert: {
           advent_calendar_id: string
           bottles_expected: number
           has_submitted?: boolean
           id?: string
-          user_id: string
+          placeholder_name?: string | null
+          user_id?: string | null
         }
         Update: {
           advent_calendar_id?: string
           bottles_expected?: number
           has_submitted?: boolean
           id?: string
-          user_id?: string
+          placeholder_name?: string | null
+          user_id?: string | null
         }
         Relationships: [
           {
